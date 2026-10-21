@@ -1,0 +1,8 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    "`getApplicationDetail` not auth-scoped — The function accepts any reference number and returns full deposits, documents, and events with no guardian-id cross-check. In the dashboard the reference comes from the guardian's own query so there is no immediate exploit, but if the function is ever called from a route that accepts a user-supplied reference (e.g., a future `/api/guardian/detail/[ref]`) it would return another guardian's data. Add an optional `guardianAccountId` parameter to `getApplicationDetail` and pass it from the dashboard call site. (confirmed)",
+    "`rejected` status absent from AuthForm routing table — Post-login routing handles `approved`, `funded`, `verification_required`, `submitted`, `under_review`, and falls back to `/apply` for anything else. A guardian with a rejected application silently lands on the registration wizard without seeing the rejection. Route `rejected` to `/status` so the case history is visible. `rejected` is never set by `advanceApplication` today so this is unreachable in the current codebase, but worth a defensive fix. (likely)"
+  ],
+  "reviewDoc": "c:\\Users\\kipro\\Downloads\\child-trust-fund-platform (1)\\.agents\\tasks\\review.md"
+}
