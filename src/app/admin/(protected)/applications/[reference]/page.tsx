@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/ui";
 import { formatUSD } from "@/lib/program";
 import ApplicationEditForm from "@/components/admin/ApplicationEditForm";
 import ApplicationStatusPanel from "@/components/admin/ApplicationStatusPanel";
+import DepositsPanel from "@/components/admin/DepositsPanel";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -24,6 +25,17 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
   if (!detail) notFound();
 
   const { application: app, deposits, documents, events, balanceCents } = detail;
+
+  // Serialize deposit dates for the client component
+  const serializedDeposits = deposits.map((d) => ({
+    id: d.id,
+    depositType: d.depositType,
+    amountCents: d.amountCents,
+    status: d.status,
+    description: d.description,
+    scheduledFor: d.scheduledFor ? d.scheduledFor.toISOString() : null,
+    postedAt: d.postedAt ? d.postedAt.toISOString() : null,
+  }));
 
   // Serialize dates for client components
   const initialFields = {
@@ -116,44 +128,8 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Deposit ledger */}
-      <div className="usa-card mt-6">
-        <h2 className="mb-4 font-serif text-lg font-semibold text-gov-navy">Deposit Ledger</h2>
-        {deposits.length === 0 ? (
-          <p className="text-sm text-gov-base">No deposits yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="usa-table w-full">
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Source</th>
-                  <th>Posted</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deposits.map((d) => (
-                  <tr key={d.id}>
-                    <td className="text-sm">{d.depositType.replace(/_/g, " ")}</td>
-                    <td className="font-semibold">{formatUSD(d.amountCents)}</td>
-                    <td>
-                      <span className={`usa-tag text-xs ${d.status === "posted" ? "bg-gov-green text-white" : "bg-gov-base-light text-gov-ink"}`}>
-                        {d.status}
-                      </span>
-                    </td>
-                    <td className="text-sm text-gov-base">{d.source}</td>
-                    <td className="text-sm text-gov-base">
-                      {d.postedAt ? new Date(d.postedAt).toLocaleDateString("en-US") : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Deposit ledger — editable via DepositsPanel */}
+      <DepositsPanel reference={app.referenceNumber} initialDeposits={serializedDeposits} />
 
       {/* Documents */}
       <div className="usa-card mt-6">

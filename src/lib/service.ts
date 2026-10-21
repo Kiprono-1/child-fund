@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db, withRetry } from "@/db";
 import {
   applications,
@@ -9,6 +9,8 @@ import {
   newsletterSignups,
   statusEvents,
   type ApplicationStatus,
+  type DepositType,
+  type DepositStatus,
 } from "@/db/schema";
 import { ANNUAL_CONTRIBUTION_LIMIT_CENTS, quoteBenefits, tierForDob } from "./program";
 import { getState, STATES } from "./states";
@@ -258,6 +260,7 @@ export type ApplicationDetail = {
 export async function getApplicationDetail(
   reference: string,
   lastName?: string,
+  guardianAccountId?: number,
 ): Promise<ApplicationDetail | null | { error: string }> {
   const [application] = await db
     .select()
@@ -271,6 +274,13 @@ export async function getApplicationDetail(
     lastName.trim().toLowerCase() !== application.childLastName.toLowerCase()
   ) {
     return { error: "The last name does not match this reference number." };
+  }
+  // Guard: if a guardian account id is provided, verify the application belongs to them.
+  if (
+    guardianAccountId !== undefined &&
+    application.guardianAccountId !== guardianAccountId
+  ) {
+    return null;
   }
 
   const [depRows, docRows, eventRows] = await Promise.all([
@@ -1430,4 +1440,195 @@ export async function adminGetStats(): Promise<AdminStats> {
     fundedAccounts: Number(row?.fundedAccounts ?? 0),
     totalPostedCents: Number(moneyRow?.totalPostedCents ?? 0),
   };
+}
+
+// ------------------------------------------------------------------ //
+// Admin dashboard stats (extended)                                    //
+// ------------------------------------------------------------------ //
+
+export type TierBreakdown = { tier: string; count: number; pct: number }[];
+export type StatusDistribution = { status: string; count: number }[];
+export type DepositTypeTotals = { depositType: string; totalCents: number }[];
+
+export type AdminDashboardStats = AdminStats & {
+  approvedAccounts: number;
+  totalGuardianAccounts: number;
+  tierBreakdown: TierBreakdown;
+  statusDistribution: StatusDistribution;
+  depositTypeTotals: DepositTypeTotals;
+};
+
+export async function adminGetDashboardStats(): Promise<AdminDashboardStats> {
+  await ensureSeedData();
+
+  const [appRow, moneyRow, gaRow, tierRows, statusRows, depositTypeRows] = await Promise.all([
+    db
+      .select({
+        totalApplications: sql<number>`count(*)::int`,
+        pendingReview: sql<number>`sum(case when ${applications.status} in ('submitted','under_review','verification_required') then 1 else 0 end)::int`,
+        fundedAccounts: sql<number>`sum(case when ${applications.status} = 'funded' then 1 else 0 end)::int`,
+        approvedAccounts: sql<number>`sum(case when ${applications.status} = 'approved' then 1 else 0 end)::int`,
+      })
+      .from(applications)
+      .then((rows) => rows[0]),
+
+    db
+      .select({
+        totalPostedCents: sql<number>`coalesce(sum(case when ${deposits.status} = 'posted' then ${deposits.amountCents} else 0 end),0)::bigint`,
+      })
+      .from(deposits)
+      .then((rows) => rows[0]),
+
+    db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(guardianAccounts)
+      .then((rows) => rows[0]),
+
+    db
+      .select({
+        tier: applications.participationTier,
+        cnt: sql<number>`count(*)::int`,
+      })
+      .from(applications)
+      .groupBy(applications.participationTier)
+      .orderBy(desc(sql`count(*)`)),
+
+    db
+      .select({
+        status: applications.status,
+        cnt: sql<number>`count(*)::int`,
+      })
+      .from(applications)
+      .groupBy(applications.status)
+      .orderBy(desc(sql`count(*)`)),
+
+    db
+      .select({
+        depositType: deposits.depositType,
+        totalCents: sql<number>`sum(${deposits.amountCents})::bigint`,
+      })
+      .from(deposits)
+      .where(eq(deposits.status, "posted"))
+      .groupBy(deposits.depositType)
+      .orderBy(desc(sql`sum(${deposits.amountCents})`)),
+  ]);
+
+  const total = Number(appRow?.totalApplications ?? 0);
+
+  return {
+    totalApplications: total,
+    pendingReview: Number(appRow?.pendingReview ?? 0),
+    fundedAccounts: Number(appRow?.fundedAccounts ?? 0),
+    approvedAccounts: Number(appRow?.approvedAccounts ?? 0),
+    totalPostedCents: Number(moneyRow?.totalPostedCents ?? 0),
+    totalGuardianAccounts: Number(gaRow?.total ?? 0),
+    tierBreakdown: tierRows.map((r) => ({
+      tier: r.tier,
+      count: Number(r.cnt),
+      pct: total > 0 ? (Number(r.cnt) / total) * 100 : 0,
+    })),
+    statusDistribution: statusRows.map((r) => ({
+      status: r.status,
+      count: Number(r.cnt),
+    })),
+    depositTypeTotals: depositTypeRows.map((r) => ({
+      depositType: r.depositType,
+      totalCents: Number(r.totalCents),
+    })),
+  };
+}
+
+// ------------------------------------------------------------------ //
+// Admin deposit CRUD                                                  //
+// ------------------------------------------------------------------ //
+
+export type AdminDepositInput = {
+  depositType: DepositType;
+  amountCents: number;
+  description: string;
+  status: DepositStatus;
+  scheduledFor: string | null;
+};
+
+export async function adminGetDepositsByApplication(applicationId: number): Promise<DepositRow[]> {
+  return db
+    .select()
+    .from(deposits)
+    .where(eq(deposits.applicationId, applicationId))
+    .orderBy(deposits.scheduledFor, deposits.createdAt);
+}
+
+export async function adminAddDeposit(
+  applicationId: number,
+  fields: AdminDepositInput,
+): Promise<DepositRow> {
+  const [row] = await db
+    .insert(deposits)
+    .values({
+      applicationId,
+      depositType: fields.depositType,
+      amountCents: fields.amountCents,
+      description: fields.description,
+      status: fields.status,
+      source: "admin",
+      scheduledFor: fields.scheduledFor ? new Date(fields.scheduledFor) : null,
+      postedAt: fields.status === "posted" ? new Date() : null,
+    })
+    .returning();
+  return row;
+}
+
+export async function adminUpdateDeposit(
+  id: number,
+  fields: Partial<AdminDepositInput>,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  // Fetch current row first so we can set postedAt correctly
+  const [current] = await db.select().from(deposits).where(eq(deposits.id, id)).limit(1);
+  if (!current) return { ok: false, error: "Not found." };
+
+  const updateSet: Partial<typeof deposits.$inferInsert> = {};
+  if (fields.depositType !== undefined) updateSet.depositType = fields.depositType;
+  if (fields.amountCents !== undefined) updateSet.amountCents = fields.amountCents;
+  if (fields.description !== undefined) updateSet.description = fields.description;
+  if (fields.status !== undefined) {
+    updateSet.status = fields.status;
+    if (fields.status === "posted" && current.postedAt === null) {
+      updateSet.postedAt = new Date();
+    }
+  }
+  if ("scheduledFor" in fields) {
+    updateSet.scheduledFor = fields.scheduledFor ? new Date(fields.scheduledFor) : null;
+  }
+
+  const result = await db.update(deposits).set(updateSet).where(eq(deposits.id, id));
+  if ((result.rowCount ?? 0) === 0) return { ok: false, error: "Not found." };
+  return { ok: true };
+}
+
+export async function adminDeleteDeposit(
+  id: number,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const result = await db.delete(deposits).where(eq(deposits.id, id));
+  if ((result.rowCount ?? 0) === 0) return { ok: false, error: "Not found." };
+  return { ok: true };
+}
+
+export async function adminGetApplicationBalances(
+  appIds: number[],
+): Promise<Map<number, number>> {
+  if (appIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      applicationId: deposits.applicationId,
+      totalCents: sql<number>`sum(${deposits.amountCents})::bigint`,
+    })
+    .from(deposits)
+    .where(
+      and(
+        inArray(deposits.applicationId, appIds),
+        eq(deposits.status, "posted"),
+      ),
+    )
+    .groupBy(deposits.applicationId);
+  return new Map(rows.map((r) => [r.applicationId, Number(r.totalCents)]));
 }

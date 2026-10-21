@@ -1,5 +1,5 @@
 import { getAdminSession } from "@/lib/auth";
-import { adminGetStats } from "@/lib/service";
+import { adminGetDashboardStats } from "@/lib/service";
 
 export const dynamic = "force-dynamic";
 
@@ -8,9 +8,8 @@ export async function GET() {
   if (!isAdmin) {
     return Response.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
-
   try {
-    const stats = await adminGetStats();
+    const stats = await adminGetDashboardStats();
     return Response.json({ ok: true, stats });
   } catch (err) {
     console.error("Admin stats error:", err);

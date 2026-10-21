@@ -1,12 +1,23 @@
 import { requireAdminSession } from "@/app/admin/_adminAuth";
-import { adminGetAllApplications } from "@/lib/service";
+import { adminGetAllApplications, adminGetApplicationBalances } from "@/lib/service";
 import { StatusBadge } from "@/components/ui";
+import { formatUSD } from "@/lib/program";
 import ApplicationsFilter from "@/components/admin/ApplicationsFilter";
 import Link from "next/link";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Applications — Admin" };
+
+function TierBadge({ tier }: { tier: string }) {
+  const styles =
+    tier === "automatic"
+      ? "bg-gov-primary-lighter text-gov-primary-darker"
+      : tier === "standard"
+        ? "bg-[#ddf9c7] text-gov-green-dark"
+        : "bg-gov-base-light text-gov-navy";
+  return <span className={`usa-tag ${styles}`}>{tier}</span>;
+}
 
 export default async function AdminApplicationsPage({
   searchParams,
@@ -21,6 +32,8 @@ export default async function AdminApplicationsPage({
   const search = sp.search ?? undefined;
 
   const { rows, total, pages } = await adminGetAllApplications({ page, status, search });
+
+  const balanceMap = await adminGetApplicationBalances(rows.map((r) => r.id));
 
   return (
     <div className="p-6">
@@ -43,7 +56,9 @@ export default async function AdminApplicationsPage({
               <th>Child Name</th>
               <th>Guardian</th>
               <th>State</th>
+              <th>Tier</th>
               <th>Status</th>
+              <th>Balance</th>
               <th>Submitted</th>
               <th>Actions</th>
             </tr>
@@ -58,7 +73,13 @@ export default async function AdminApplicationsPage({
                 <td>{row.parentFullName}</td>
                 <td>{row.parentState}</td>
                 <td>
+                  <TierBadge tier={row.participationTier} />
+                </td>
+                <td>
                   <StatusBadge status={row.status} />
+                </td>
+                <td className="font-semibold tabular-nums text-sm">
+                  {formatUSD(balanceMap.get(row.id) ?? 0)}
                 </td>
                 <td className="whitespace-nowrap text-sm text-gov-base">
                   {new Date(row.submittedAt).toLocaleDateString("en-US")}
@@ -75,7 +96,7 @@ export default async function AdminApplicationsPage({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-gov-base">
+                <td colSpan={9} className="py-8 text-center text-gov-base">
                   No applications match your filters.
                 </td>
               </tr>

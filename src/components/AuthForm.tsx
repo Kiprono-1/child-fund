@@ -70,6 +70,16 @@ export default function AuthForm({ mode }: { mode: "signup" | "login" }) {
             } else {
               router.push("/status");
             }
+          } else if (statuses.some((s) => s === "rejected")) {
+            // Send rejected guardians to status so they can see the case history
+            const first = apps.find((a) => a.status === "rejected");
+            if (first) {
+              router.push(
+                `/status?ref=${encodeURIComponent(first.referenceNumber)}&last=${encodeURIComponent(first.childLastName)}`,
+              );
+            } else {
+              router.push("/status");
+            }
           } else {
             router.push("/apply");
           }
