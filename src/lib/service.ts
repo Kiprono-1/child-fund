@@ -1548,15 +1548,10 @@ export type AdminDepositInput = {
   description: string;
   status: DepositStatus;
   scheduledFor: string | null;
+  /** Institution or system that originated the deposit (defaults to "Admin Portal"). */
+  source?: string;
 };
 
-export async function adminGetDepositsByApplication(applicationId: number): Promise<DepositRow[]> {
-  return db
-    .select()
-    .from(deposits)
-    .where(eq(deposits.applicationId, applicationId))
-    .orderBy(deposits.scheduledFor, deposits.createdAt);
-}
 
 export async function adminAddDeposit(
   applicationId: number,
@@ -1570,7 +1565,7 @@ export async function adminAddDeposit(
       amountCents: fields.amountCents,
       description: fields.description,
       status: fields.status,
-      source: "admin",
+      source: fields.source ?? "Admin Portal",
       scheduledFor: fields.scheduledFor ? new Date(fields.scheduledFor) : null,
       postedAt: fields.status === "posted" ? new Date() : null,
     })
@@ -1625,6 +1620,8 @@ export async function adminGetApplicationBalances(
     .from(deposits)
     .where(
       and(
+        // inArray with an empty array produces invalid SQL ("IN ()") — the
+        // early-return above guards this, but the comment makes that explicit.
         inArray(deposits.applicationId, appIds),
         eq(deposits.status, "posted"),
       ),

@@ -25,6 +25,8 @@ type AdminDepositInput = {
   description: string;
   status: DepositStatus;
   scheduledFor: string | null;
+  /** Institution or system that originated the deposit. */
+  source?: string;
 };
 
 type Props = {
@@ -75,6 +77,7 @@ const DEFAULT_ADD: AdminDepositInput = {
   description: "",
   status: "scheduled",
   scheduledFor: null,
+  source: "",
 };
 
 // ------------------------------------------------------------------ //
@@ -235,18 +238,8 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             amountCents: dep.amountCents,
             status: dep.status,
             description: dep.description,
-            scheduledFor:
-              dep.scheduledFor
-                ? typeof dep.scheduledFor === "string"
-                  ? dep.scheduledFor
-                  : new Date(dep.scheduledFor as unknown as string).toISOString()
-                : null,
-            postedAt:
-              dep.postedAt
-                ? typeof dep.postedAt === "string"
-                  ? dep.postedAt
-                  : new Date(dep.postedAt as unknown as string).toISOString()
-                : null,
+            scheduledFor: dep.scheduledFor ?? null,
+            postedAt: dep.postedAt ?? null,
           },
         ]);
         setAdding(false);
@@ -407,6 +400,23 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                     ...f,
                     scheduledFor: e.target.value || null,
                   }))
+                }
+              />
+            </div>
+
+            <div className="sm:col-span-2 lg:col-span-3">
+              <label className="usa-label" htmlFor="add-source">
+                Source{" "}
+                <span className="text-xs font-normal text-gov-base">(institution name, leave blank for "Admin Portal")</span>
+              </label>
+              <input
+                id="add-source"
+                type="text"
+                className="usa-input"
+                placeholder="e.g. U.S. Department of the Treasury"
+                value={addFields.source ?? ""}
+                onChange={(e) =>
+                  setAddFields((f) => ({ ...f, source: e.target.value || undefined }))
                 }
               />
             </div>
