@@ -1,0 +1,33 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Rewrite AuthForm.tsx with show/hide password toggle, remember-me checkbox (30 vs 7 days), password strength indicator (signup mode), trust signals row, and better error messages. Update the login API route to accept and use rememberMe. Update the dashboard page to show multiple children as folder-style cards at the top when the guardian has more than one child. This feature is independent of FEAT-001 and FEAT-002.",
+  "status": "completed",
+  "steps": [
+    "1. Rewrite src/components/AuthForm.tsx. Add state: showPassword (boolean), rememberMe (boolean, default true). Add an eye/eye-off SVG toggle button inside the password input wrapper (position: relative, button absolute right-0). In login mode, add a row below the password field: left side is a 'Remember me for 30 days' checkbox (unchecked = 7 days), right side is a 'Forgot password?' placeholder link styled as text. Add a trust-signals row below the submit button: a row of 3 small items with SVG icons — '256-bit encryption', 'Secure .gov server', 'No sharing of your data'. For signup mode only, show a password strength indicator bar (4 segments: weak/fair/good/strong) based on length+complexity, and a requirements checklist (8+ chars, 1 uppercase, 1 number, 1 special char) that turns green as criteria are met. Pass rememberMe in the login POST body as { email, password, rememberMe }. The redirect logic after login stays exactly the same as the current AuthForm.",
+    "2. Update src/app/api/auth/login/route.ts: read body.rememberMe (boolean, default false). Compute maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7. Pass maxAge to sessionCookieOptions(maxAge). The sessionCookieOptions function in auth.ts already accepts a maxAge parameter — no change to auth.ts needed. Also pass maxAge to createSessionToken as the third argument so the JWT exp matches the cookie lifetime.",
+    "3. Update src/app/(public)/dashboard/page.tsx: when appRows.length > 1, replace the existing DashboardChildSwitcher tab-bar section with a new 'Your Children' grid section rendered before the balance tiles. Render one folder-style card per child using a <Link href={`/dashboard?child=${row.referenceNumber}`}> wrapper. Each card shows: a colored folder-tab top border (use gov-primary for selected, gov-base-light for others), the child's full name in font-serif, their status badge (use existing StatusBadge component), their reference number in font-mono small text, and the current balance (postedDeps for that child — compute a lightweight balance per child by fetching balances in a loop or using the existing appRows data; since appRows only has summary data without balance, add a helper). Implementation note: to avoid N+1 queries for balance, add a new service function getBalancesByGuardianId(guardianId) that returns { referenceNumber, balanceCents }[] in a single SQL query (SUM of posted deposit amounts grouped by application). Call this in the dashboard page and join to appRows.",
+    "4. Add getBalancesByGuardianId(guardianId: number) to src/lib/service.ts. It should: select applications.reference_number, coalesce(sum(deposits.amount_cents), 0) as balance_cents from applications left join deposits on deposits.application_id = applications.id and deposits.status = 'posted' where applications.guardian_account_id = guardianId group by applications.reference_number. Return as { referenceNumber: string; balanceCents: number }[].",
+    "5. In the dashboard page, when appRows.length > 1, show the children grid at the TOP (before the balance tiles section). The selected child's detail section (balance tiles, deposit history, etc.) remains below the grid, showing data for the currently selected child. Keep the existing DashboardChildSwitcher import and usage in its current location as a fallback — or remove it if the new folder-card grid fully replaces it. Decision: remove the DashboardChildSwitcher section (the existing `appRows.length > 1` block) and replace with the new folder-card grid to avoid duplication.",
+    "6. Style the folder-card grid using existing CSS classes: grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 for the grid. Each card: usa-card p-4 cursor-pointer with hover:border-gov-primary transition. Selected card gets border-2 border-gov-primary bg-gov-primary-lightest. Non-selected: border border-gov-base-light bg-white. Child name: font-serif font-bold text-gov-navy. Balance: font-serif text-xl tabular-nums. No new CSS classes needed — use existing utilities."
+  ],
+  "acceptance_criteria": [
+    "Login form has a working show/hide password eye toggle",
+    "Login form has a remember-me checkbox that is checked by default",
+    "Checking remember-me sends rememberMe: true to the API, setting a 30-day cookie",
+    "Unchecking remember-me sends rememberMe: false, setting a 7-day cookie",
+    "Signup form shows a 4-segment password strength bar and a requirements checklist",
+    "Trust signals row (encryption, secure server, no sharing) appears below the submit button",
+    "Dashboard with multiple children shows folder-style cards at the top before balance tiles",
+    "Each folder card shows child name, status, reference number, and balance",
+    "Clicking a folder card switches the detail section to that child",
+    "npm run typecheck passes with 0 errors",
+    "npm run build succeeds"
+  ],
+  "verification": [
+    "npm run typecheck",
+    "npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": "All 6 steps implemented. AuthForm.tsx rewritten with eye toggles for password/confirm fields, remember-me checkbox (30/7 day label), 4-segment strength bar + requirements checklist (signup), trust signals row. Login route now reads rememberMe and passes maxAge to both createSessionToken and sessionCookieOptions. getBalancesByGuardianId added to service.ts using a single LEFT JOIN + GROUP BY query. Dashboard page imports getBalancesByGuardianId, builds a referenceNumber→balanceCents Map, and replaces DashboardChildSwitcher with a folder-card grid (grid-cols-2 sm:3 lg:4) showing name, reference, balance, and status per child. npm run typecheck: 0 errors. npm run build: succeeded."
+}

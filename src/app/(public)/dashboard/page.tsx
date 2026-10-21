@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Callout, StatusBadge } from "@/components/ui";
-import DashboardChildSwitcher from "@/components/DashboardChildSwitcher";
 import CopyReferenceButton from "@/components/CopyReferenceButton";
 import { getSessionGuardian } from "@/lib/auth";
 import { formatUSD, tierForDob } from "@/lib/program";
-import { getApplicationsByGuardianId, getApplicationDetail } from "@/lib/service";
+import { getApplicationsByGuardianId, getApplicationDetail, getBalancesByGuardianId } from "@/lib/service";
 import { getState } from "@/lib/states";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +68,14 @@ export default async function DashboardPage({ searchParams }: Props) {
   if (appRows.length === 0) {
     redirect("/apply");
   }
+
+  // Fetch per-child balances in one query
+  const balanceMap = new Map(
+    (await getBalancesByGuardianId(guardian.guardianId)).map((b) => [
+      b.referenceNumber,
+      b.balanceCents,
+    ]),
+  );
 
   // Determine which child to show
   const sp = await searchParams;
@@ -227,18 +234,51 @@ export default async function DashboardPage({ searchParams }: Props) {
         </div>
       </section>
 
-      {/* ── Child switcher (multi-child only) ─────────────────────── */}
+      {/* ── Children folder-card grid (multi-child only) ─────────── */}
       {appRows.length > 1 && (
-        <section className="border-b border-gov-base-light bg-white py-4">
-          <DashboardChildSwitcher
-            children={appRows.map((a) => ({
-              referenceNumber: a.referenceNumber,
-              childFirstName: a.childFirstName,
-              childLastName: a.childLastName,
-              status: a.status,
-              selected: a.referenceNumber === selectedRef,
-            }))}
-          />
+        <section className="border-b border-gov-base-light bg-white py-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-gov-primary">
+              Your Registered Children
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {appRows.map((row) => {
+                const isSelected = row.referenceNumber === selectedRef;
+                const childBalance = balanceMap.get(row.referenceNumber) ?? 0;
+                return (
+                  <Link
+                    key={row.referenceNumber}
+                    href={`/dashboard?child=${encodeURIComponent(row.referenceNumber)}`}
+                    className={`block rounded-lg p-4 transition-colors no-underline cursor-pointer ${
+                      isSelected
+                        ? "border-2 border-gov-primary bg-gov-primary-lightest"
+                        : "border border-gov-base-light bg-white hover:border-gov-primary"
+                    }`}
+                  >
+                    {/* Folder tab accent */}
+                    <div
+                      className={`mb-3 h-1 w-8 rounded-full ${
+                        isSelected ? "bg-gov-primary" : "bg-gov-base-light"
+                      }`}
+                      aria-hidden="true"
+                    />
+                    <p className="m-0 font-serif font-bold text-gov-navy leading-snug">
+                      {row.childFirstName} {row.childLastName}
+                    </p>
+                    <p className="m-0 mt-1 font-mono text-xs text-gov-base">
+                      {row.referenceNumber}
+                    </p>
+                    <p className="m-0 mt-2 font-serif text-xl font-bold tabular-nums text-gov-navy">
+                      {formatUSD(childBalance)}
+                    </p>
+                    <div className="mt-2">
+                      <StatusBadge status={row.status} />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </section>
       )}
 

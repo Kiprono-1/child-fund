@@ -6,9 +6,10 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { email?: string; password?: string };
+    const body = (await req.json()) as { email?: string; password?: string; rememberMe?: boolean };
     const email = String(body.email ?? "").trim();
     const password = String(body.password ?? "");
+    const rememberMe = body.rememberMe === true;
 
     if (!email || !password) {
       return Response.json(
@@ -27,9 +28,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = createSessionToken({ guardianId: account.id, email: account.email }, getSecret());
+    // 30 days when remembered, 7 days otherwise
+    const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7;
+
+    const token = createSessionToken(
+      { guardianId: account.id, email: account.email },
+      getSecret(),
+      maxAge,
+    );
     const store = await cookies();
-    store.set(SESSION_COOKIE, token, sessionCookieOptions());
+    store.set(SESSION_COOKIE, token, sessionCookieOptions(maxAge));
 
     return Response.json({
       ok: true,

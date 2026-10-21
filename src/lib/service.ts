@@ -833,6 +833,29 @@ export async function getApplicationsByGuardianId(guardianAccountId: number) {
     .orderBy(desc(applications.submittedAt));
 }
 
+/**
+ * Returns the posted balance for every application belonging to a guardian,
+ * in a single SQL query (no N+1).
+ */
+export async function getBalancesByGuardianId(
+  guardianId: number,
+): Promise<{ referenceNumber: string; balanceCents: number }[]> {
+  await ensureSeedData();
+  const rows = await db
+    .select({
+      referenceNumber: applications.referenceNumber,
+      balanceCents: sql<number>`coalesce(sum(case when ${deposits.status} = 'posted' then ${deposits.amountCents} else 0 end), 0)::bigint`,
+    })
+    .from(applications)
+    .leftJoin(deposits, eq(deposits.applicationId, applications.id))
+    .where(eq(applications.guardianAccountId, guardianId))
+    .groupBy(applications.referenceNumber);
+  return rows.map((r) => ({
+    referenceNumber: r.referenceNumber,
+    balanceCents: Number(r.balanceCents),
+  }));
+}
+
 export async function linkApplicationToGuardian(
   reference: string,
   guardianAccountId: number,
