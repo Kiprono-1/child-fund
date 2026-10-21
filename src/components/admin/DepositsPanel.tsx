@@ -731,6 +731,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                     <tr key={d.id} className="bg-gov-base-lightest">
                       <td>
                         <select
+                          aria-label="Type"
                           className="usa-input text-sm"
                           value={editFields.depositType ?? d.depositType}
                           onChange={(e) =>
@@ -749,6 +750,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                       </td>
                       <td>
                         <input
+                          aria-label="Description"
                           type="text"
                           className="usa-input text-sm"
                           value={editFields.description ?? d.description}
@@ -759,6 +761,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                       </td>
                       <td>
                         <input
+                          aria-label="Amount"
                           type="number"
                           step="0.01"
                           min="0.01"
@@ -778,6 +781,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                       </td>
                       <td>
                         <select
+                          aria-label="Status"
                           className="usa-input text-sm"
                           value={editFields.status ?? d.status}
                           onChange={(e) =>
@@ -796,6 +800,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                       </td>
                       <td>
                         <input
+                          aria-label="Source / Notes"
                           type="text"
                           className="usa-input text-sm"
                           value={editFields.source ?? d.source}
@@ -806,6 +811,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                       </td>
                       <td>
                         <input
+                          aria-label="Scheduled for"
                           type="date"
                           className="usa-input text-sm"
                           value={

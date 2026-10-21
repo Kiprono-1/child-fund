@@ -135,9 +135,9 @@ export default async function AdminApplicationsPage({
                 <td>
                   <Link
                     href={`/admin/applications/${row.referenceNumber}`}
-                    className="text-sm text-gov-primary hover:underline"
+                    className="usa-button usa-button--outline text-xs"
                   >
-                    Review
+                    Open
                   </Link>
                 </td>
               </tr>
