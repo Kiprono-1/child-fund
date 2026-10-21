@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Add MINIMUM_INITIAL_DEPOSIT_CENTS constant to program.ts and enforce the $1,500 minimum deposit in the backend service and API routes. This is the data-layer foundation the wizard and deposit form depend on.",
+  "status": "completed",
+  "steps": [
+    "1. In src/lib/program.ts, add after ANNUAL_CONTRIBUTION_LIMIT_CENTS: `export const MINIMUM_INITIAL_DEPOSIT_CENTS = 150000; // $1,500.00 per child`",
+    "2. In src/lib/service.ts, import MINIMUM_INITIAL_DEPOSIT_CENTS from './program'. In addGuardianDeposit(), replace the `amountCents < 100` check with `amountCents < MINIMUM_INITIAL_DEPOSIT_CENTS` and update the error message to 'A minimum deposit of $1,500.00 is required per child.'",
+    "3. In src/lib/service.ts validateApplication(), add a check: if monthlyContribution is provided and > 0, it must be at least MINIMUM_INITIAL_DEPOSIT_CENTS (i.e., the initial deposit field at registration must be >= $1,500 when provided). Add: if (typeof input.monthlyContribution === 'number' && input.monthlyContribution > 0 && input.monthlyContribution < MINIMUM_INITIAL_DEPOSIT_CENTS) { errors.monthlyContribution = 'Initial deposit must be at least $1,500.00 per child.'; }",
+    "4. In src/app/api/applications/[reference]/actions/route.ts, the existing service call already enforces the minimum after step 2 above — no change needed beyond the import propagating through service.ts.",
+    "5. In src/app/api/applications/route.ts, add server-side check: after building the payload, if payload.monthlyContribution > 0 && payload.monthlyContribution * 100 < MINIMUM_INITIAL_DEPOSIT_CENTS, return 422 with errors.monthlyContribution = 'Initial deposit must be at least $1,500.00 per child.' Import MINIMUM_INITIAL_DEPOSIT_CENTS from '@/lib/program'."
+  ],
+  "acceptance_criteria": [
+    "MINIMUM_INITIAL_DEPOSIT_CENTS = 150000 exists as a named export in src/lib/program.ts",
+    "addGuardianDeposit in service.ts rejects amounts below $1,500 with a clear message",
+    "validateApplication in service.ts rejects initial deposits below $1,500 when a deposit amount is given",
+    "npm run typecheck passes with 0 errors",
+    "npm run build succeeds"
+  ],
+  "verification": [
+    "npm run typecheck",
+    "npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": "All steps implemented. MINIMUM_INITIAL_DEPOSIT_CENTS = 150000 added to src/lib/program.ts. service.ts updated to import the constant, enforce it in addGuardianDeposit (replacing the $1 floor with $1,500), and validate it in validateApplication. src/app/api/applications/route.ts imports the constant and enforces the minimum before calling createApplication. npm run typecheck: 0 errors. npm run build: succeeded."
+}

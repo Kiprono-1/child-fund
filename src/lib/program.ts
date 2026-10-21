@@ -6,6 +6,8 @@ export const FEDERAL_SEED_CENTS = 100000; // $1,000.00
 export const FEDERAL_SUPPLEMENT_CENTS = 15000; // $150.00 / year
 /** Maximum a guardian may contribute to a single child account per year. */
 export const ANNUAL_CONTRIBUTION_LIMIT_CENTS = 500000; // $5,000.00
+/** Minimum initial deposit required per child at registration. */
+export const MINIMUM_INITIAL_DEPOSIT_CENTS = 150000; // $1,500.00 per child
 /** Automatic enrollment birth-year window. */
 export const AUTO_ENROLLMENT_YEARS = [2025, 2026, 2027, 2028] as const;
 

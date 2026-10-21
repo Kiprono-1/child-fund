@@ -1,5 +1,6 @@
 import { createApplication, getProgramStats, type NewApplicationInput } from "@/lib/service";
 import { getSessionGuardian } from "@/lib/auth";
+import { MINIMUM_INITIAL_DEPOSIT_CENTS } from "@/lib/program";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,17 @@ export async function POST(req: Request) {
       electronicSignature: String(body.electronicSignature ?? ""),
       guardianAccountId: guardian?.guardianId,
     };
+
+    // Server-side guard: initial deposit must meet the minimum when provided.
+    if (payload.monthlyContribution > 0 && payload.monthlyContribution < MINIMUM_INITIAL_DEPOSIT_CENTS) {
+      return Response.json(
+        {
+          ok: false,
+          errors: { monthlyContribution: "Initial deposit must be at least $1,500.00 per child." },
+        },
+        { status: 422 },
+      );
+    }
 
     const result = await createApplication(payload);
     if (!result.ok) {

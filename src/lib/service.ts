@@ -13,7 +13,7 @@ import {
   type DepositType,
   type DepositStatus,
 } from "@/db/schema";
-import { ANNUAL_CONTRIBUTION_LIMIT_CENTS, quoteBenefits, tierForDob } from "./program";
+import { ANNUAL_CONTRIBUTION_LIMIT_CENTS, MINIMUM_INITIAL_DEPOSIT_CENTS, quoteBenefits, tierForDob } from "./program";
 import { getState, STATES } from "./states";
 
 export type NewApplicationInput = {
@@ -129,6 +129,14 @@ export function validateApplication(input: Partial<NewApplicationInput>): {
   }
   if (input.childDob && Number.isNaN(new Date(`${input.childDob}T00:00:00`).getTime())) {
     errors.childDob = "Enter a valid date of birth.";
+  }
+
+  if (
+    typeof input.monthlyContribution === "number" &&
+    input.monthlyContribution > 0 &&
+    input.monthlyContribution < MINIMUM_INITIAL_DEPOSIT_CENTS
+  ) {
+    errors.monthlyContribution = "Initial deposit must be at least $1,500.00 per child.";
   }
 
   return { errors };
@@ -535,8 +543,8 @@ export async function addGuardianDeposit(
   amountCents: number,
   recurring: boolean,
 ) {
-  if (!Number.isFinite(amountCents) || amountCents < 100) {
-    return { ok: false as const, error: "Enter a contribution of at least $1.00." };
+  if (!Number.isFinite(amountCents) || amountCents < MINIMUM_INITIAL_DEPOSIT_CENTS) {
+    return { ok: false as const, error: "A minimum deposit of $1,500.00 is required per child." };
   }
   if (amountCents > ANNUAL_CONTRIBUTION_LIMIT_CENTS) {
     return {
