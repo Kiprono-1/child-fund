@@ -11,7 +11,7 @@ type NavItem = {
   children?: { label: string; href: string; desc?: string }[];
 };
 
-const NAV: NavItem[] = [
+const NAV_LOGGED_OUT: NavItem[] = [
   {
     label: "About the Program",
     href: "/about",
@@ -24,6 +24,34 @@ const NAV: NavItem[] = [
     ],
   },
   { label: "Register a Child", href: "/signup" },
+  { label: "Verify Identity", href: "/verify" },
+  { label: "Track Application", href: "/status" },
+  {
+    label: "Resources",
+    href: "/resources",
+    children: [
+      { label: "Financial Education", href: "/resources", desc: "Guides for parents and kids" },
+      { label: "Savings Calculator", href: "/resources#calculator", desc: "Project the account at age 18" },
+      { label: "Forms & Publications", href: "/resources#forms", desc: "Downloadable PDF forms" },
+      { label: "Frequently Asked Questions", href: "/faq", desc: "Answers to common questions" },
+    ],
+  },
+  { label: "Contact Us", href: "/contact" },
+];
+
+const NAV_LOGGED_IN: NavItem[] = [
+  {
+    label: "About the Program",
+    href: "/about",
+    children: [
+      { label: "About the Child Trust Fund", href: "/about", desc: "Statute, mission and governance" },
+      { label: "How It Works", href: "/how-it-works", desc: "From birth certificate to funded account" },
+      { label: "Eligibility & Benefits", href: "/eligibility", desc: "Who qualifies and for how much" },
+      { label: "State Participation", href: "/states", desc: "State match rates for all 50 states" },
+      { label: "Program Data", href: "/program-data", desc: "Live enrollment and funding statistics" },
+    ],
+  },
+  { label: "My Dashboard", href: "/dashboard" },
   { label: "Verify Identity", href: "/verify" },
   { label: "Track Application", href: "/status" },
   { label: "Make a Deposit", href: "/deposit" },
@@ -48,6 +76,7 @@ export default function SiteHeader() {
   const [mobileSub, setMobileSub] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [me, setMe] = useState<{ email: string; fullName: string } | null>(null);
+  const [navReady, setNavReady] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -65,9 +94,10 @@ export default function SiteHeader() {
           const guardian =
             (d as { guardian?: { email: string; fullName: string } } | null)?.guardian ?? null;
           setMe(guardian);
+          setNavReady(true);
         }
       })
-      .catch(() => {});
+      .catch(() => { setNavReady(true); });
     return () => {
       cancelled = true;
     };
@@ -178,7 +208,7 @@ export default function SiteHeader() {
       >
         <div className="mx-auto flex max-w-7xl items-stretch px-4 sm:px-6">
           <ul className="flex items-stretch">
-            {NAV.map((item) => {
+            {(me ? NAV_LOGGED_IN : NAV_LOGGED_OUT).map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
               const hasKids = Boolean(item.children?.length);
               const isOpen = openMenu === item.label;
@@ -234,11 +264,11 @@ export default function SiteHeader() {
             {me ? (
               <>
                 <span className="hidden text-[0.8rem] text-gov-primary-lighter xl:inline">
-                  Signed in as {me.fullName || me.email}
+                  {me.fullName || me.email}
                 </span>
                 <Link
                   href="/dashboard"
-                  className="text-[0.8rem] font-bold text-gov-primary-lighter hover:text-white hover:underline"
+                  className="usa-button usa-button--accent !py-2 text-[0.8rem]"
                 >
                   My Dashboard
                 </Link>
@@ -251,16 +281,20 @@ export default function SiteHeader() {
                 </button>
               </>
             ) : (
-              <Link
-                href="/login"
-                className="text-[0.8rem] font-bold text-gov-primary-lighter hover:text-white hover:underline"
-              >
-                Sign in
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="text-[0.8rem] font-bold text-gov-primary-lighter hover:text-white hover:underline"
+                >
+                  Sign in
+                </Link>
+                {navReady && (
+                  <Link href="/signup" className="usa-button usa-button--accent !py-2 text-[0.8rem]">
+                    Register a child now
+                  </Link>
+                )}
+              </>
             )}
-            <Link href="/signup" className="usa-button usa-button--accent !py-2 text-[0.8rem]">
-              Register a child now
-            </Link>
           </div>
         </div>
       </nav>
@@ -282,7 +316,7 @@ export default function SiteHeader() {
             </button>
           </form>
           <ul className="divide-y divide-gov-base-light">
-            {NAV.map((item) => {
+            {(me ? NAV_LOGGED_IN : NAV_LOGGED_OUT).map((item) => {
               const hasKids = Boolean(item.children?.length);
               const expanded = mobileSub === item.label;
               return (
@@ -334,35 +368,34 @@ export default function SiteHeader() {
           </ul>
           <div className="space-y-2 px-4 py-4">
             {me ? (
-              <div className="flex items-center justify-between text-sm text-gov-navy">
-                <span>Signed in as {me.fullName || me.email}</span>
-                <div className="flex items-center gap-3">
-                  <Link
-                    href="/dashboard"
-                    className="font-bold text-gov-primary hover:underline"
-                  >
-                    My Dashboard
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={signOut}
-                    className="font-bold text-gov-primary hover:underline"
-                  >
-                    Sign out
-                  </button>
-                </div>
+              <div className="space-y-2">
+                <p className="text-sm text-gov-base">
+                  Signed in as <strong className="text-gov-navy">{me.fullName || me.email}</strong>
+                </p>
+                <Link href="/dashboard" className="usa-button usa-button--primary w-full text-center">
+                  My Dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={signOut}
+                  className="w-full rounded border border-gov-base-light py-2 text-center text-sm font-bold text-gov-primary hover:bg-gov-base-lightest"
+                >
+                  Sign out
+                </button>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="block py-2 text-center text-sm font-bold text-gov-primary"
-              >
-                Sign in
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="block py-2 text-center text-sm font-bold text-gov-primary"
+                >
+                  Sign in
+                </Link>
+                <Link href="/signup" className="usa-button usa-button--primary w-full text-center">
+                  Register a child now
+                </Link>
+              </>
             )}
-            <Link href="/signup" className="usa-button usa-button--primary w-full">
-              Register a child now
-            </Link>
           </div>
         </div>
       )}
