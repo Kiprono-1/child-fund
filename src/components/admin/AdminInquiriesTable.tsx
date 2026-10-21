@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type InquiryRow = {
@@ -54,9 +54,8 @@ export default function AdminInquiriesTable({ rows }: Props) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <>
+            <Fragment key={row.id}>
               <tr
-                key={row.id}
                 className="cursor-pointer hover:bg-gov-base-lighter"
                 onClick={() => setExpandedId(expandedId === row.id ? null : row.id)}
               >
@@ -97,7 +96,7 @@ export default function AdminInquiriesTable({ rows }: Props) {
                 </td>
               </tr>
               {expandedId === row.id && (
-                <tr key={`${row.id}-expanded`}>
+                <tr>
                   <td colSpan={8} className="bg-gov-base-lighter px-4 py-3">
                     <p className="text-sm font-semibold text-gov-navy">Full message:</p>
                     <p className="mt-1 whitespace-pre-wrap text-sm text-gov-ink">{row.message}</p>
@@ -107,7 +106,7 @@ export default function AdminInquiriesTable({ rows }: Props) {
                   </td>
                 </tr>
               )}
-            </>
+            </Fragment>
           ))}
         </tbody>
       </table>
