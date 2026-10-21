@@ -1,258 +1,614 @@
-# Implementation Plan — Post-login Verification Flow & Guardian Dashboard
+# Implementation Plan — Admin Portal Enhancement
 
 ## Codebase findings
 
-| File | Relevant state |
-|---|---|
-| `src/lib/auth.ts` | `getSessionGuardian()` returns `{ guardianId, email }` or `null`. Cookie name: `ctf_session`. |
-| `src/lib/service.ts` | `createGuardianAccount` already catches pg error 23505 and returns `{ ok: false, duplicate: true }`. `getApplicationsByGuardianId` and `linkApplicationToGuardian` do **not** exist yet. |
-| `src/app/api/auth/signup/route.ts` | Already has a double-catch for 23505 but `errors` is keyed to `email` — the UI gets field-level errors. The `AuthForm` checks `data.errors` before `data.error`, so this **will** render if the response status is 409. The bug: the outer `catch` re-throws to the final `catch (err)` which returns 500. Fixed by the existing inner try/catch — but the test scenario in the user messages shows that `NeonDbError` is thrown as a **cause** property, not a direct code on the error. The signup route's inner catch already handles `causeCode === '23505'`. This is effectively already fixed, but we should verify and also ensure `SESSION_SECRET` is set in `.env`. |
-| `src/app/api/auth/login/route.ts` | Thin, correct. No changes needed. |
-| `src/app/api/applications/route.ts` | Already reads `getSessionGuardian()` and passes `guardianAccountId` into `createApplication`. So **linking is already wired** — applications created while logged in already get `guardian_account_id` set. |
-| `src/components/AuthForm.tsx` | Always does `router.push("/apply")` on success — needs to call a new `/api/guardian/applications` first to decide the destination. |
-| `src/components/SiteHeader.tsx` | `me` state already fetched. "My Dashboard" link needed when `me !== null`. |
-| `src/components/RegistrationWizard.tsx` | Confirmation screen renders inline; task says to redirect to `/dashboard` after submit instead. |
-| `src/app/verify/page.tsx` | Fully static. Needs a server-side session check to show a pre-filled reference banner for logged-in guardians. |
-| `src/db/schema.ts` | `guardianAccountId` column already defined with FK to `guardian_accounts`. |
+- `src/lib/service.ts` already exports `adminGetStats()` (returns `AdminStats`), `adminGetAllApplications()`, `adminGetApplicationDetail()`.
+- `deposits` table has: `id`, `applicationId`, `depositType`, `amountCents`, `status`, `description`, `source`, `scheduledFor`, `postedAt`, `createdAt`. The `source` column exists; spec says no `source` required on add-form — default to empty string or admin.
+- `guardianAccounts` table exists in schema and in the DB via `ensureSchema()`.
+- `applications.participationTier` stores values `"automatic"`, `"standard"`, or `"legacy"`. The seeder uses `tierForDob()` from `program.ts` which maps `standard` to the `"standard"` internal key (not `"guardian_funded"` — the task brief calls it `guardian_funded` but the DB stores `standard`; plan uses DB reality: `automatic | standard | legacy`).
+- `StatusBadge` and `StatTile` are in `src/components/ui.tsx`. `StatTile` accepts `tone: "navy" | "gold" | "white"` — the colored-border variant must be CSS-only in the new component.
+- Auth gate: `getAdminSession()` from `src/lib/auth.ts` returns `boolean`; pages use `requireAdminSession()` from `src/app/admin/_adminAuth.ts`.
+- Existing admin API routes live under `src/app/api/admin/`.
+- No `src/components/admin/` directory currently exists in source (only compiled artifacts). All three existing admin components (`ApplicationEditForm`, `ApplicationStatusPanel`, `ApplicationsFilter`) are `.tsx` client components.
+- `formatUSD(cents)` is exported from `src/lib/program.ts`.
 
 ---
 
-## Plan
+## Step 1 — Extend `adminGetStats` into `adminGetDashboardStats` in `src/lib/service.ts`
 
-- [ ] 1. Verify/fix the `SESSION_SECRET` missing env and the duplicate-email 500 error.
+**What to do:** Add four new service functions and one new return type at the bottom of the admin section of `src/lib/service.ts`.
 
-  The user logs show `SESSION_SECRET is not set` causing a 500 on signup. The `.env` file needs
-  `SESSION_SECRET=<random string>`. The signup route already has the correct duplicate-email
-  handling logic, but confirm it surfaces as a 409 with `{ ok: false, errors: { email: "…" } }`.
-  No code changes needed for the duplicate-email fix — the service layer already returns
-  `{ ok: false, duplicate: true }` and the signup route maps that to 409 with a field error.
-  The session-secret issue is an environment concern, but add a clear startup check comment.
+Do NOT remove `adminGetStats` — it is still called by the existing `/api/admin/stats` route which we will update in step 3. Add the new functions alongside it.
 
-  Actually: the user's third log shows the error now IS the NeonDbError duplicate-key (not the
-  missing secret), so `SESSION_SECRET` was added between messages 1 and 3. The duplicate-email
-  error IS already caught in `route.ts` via the inner try/catch (both `code === '23505'` and
-  `causeCode === '23505'` are handled). The real issue is that **the Neon driver wraps the error
-  differently** — check whether the existing catch covers it. Because the user says "it now throws
-  a 500", add a broader fallback: inspect the serialized error string for '23505' as a last resort.
+### New types to add
 
-  Files to modify:
-  - `src/app/api/auth/signup/route.ts` — add a string-based '23505' fallback in the inner catch
-    to handle any NeonDbError nesting depth.
+```ts
+export type TierBreakdown = { tier: string; count: number; pct: number }[];
+export type StatusDistribution = { status: string; count: number }[];
+export type DepositTypeTotals = { depositType: string; totalCents: number }[];
 
-  Verify: `npm run typecheck` passes (no new type errors).
+export type AdminDashboardStats = AdminStats & {
+  approvedAccounts: number;
+  totalGuardianAccounts: number;
+  tierBreakdown: TierBreakdown;
+  statusDistribution: StatusDistribution;
+  depositTypeTotals: DepositTypeTotals;
+};
+```
 
-- [ ] 2. Add `getApplicationsByGuardianId` to `src/lib/service.ts`.
+### `adminGetDashboardStats()` — full signature
 
-  New exported async function. Calls `ensureSeedData()` first (the single-flight init pattern
-  every DB accessor must follow). Returns an array of applications where
-  `guardian_account_id = guardianAccountId`, ordered by `submitted_at DESC`. Return only the
-  columns needed for routing and the dashboard: `referenceNumber`, `status`, `childFirstName`,
-  `childLastName`, `childDob`, `parentState`, `submittedAt`.
+```ts
+export async function adminGetDashboardStats(): Promise<AdminDashboardStats>
+```
 
-  Rationale: keeping the query minimal avoids sending sensitive fields over the wire to the client
-  through the API endpoint; the full detail is already available via `getApplicationDetail`.
+Implementation:
 
-  Files to modify:
-  - `src/lib/service.ts` — add the function after `getGuardianAccountById`.
+1. Reuse the same two queries already in `adminGetStats` (applications count row + deposits money row) but add `approvedAccounts` to the applications query:
+   ```ts
+   approvedAccounts: sql<number>`sum(case when ${applications.status} = 'approved' then 1 else 0 end)::int`
+   ```
 
-  Verify: `npm run typecheck` — no errors.
+2. Add a `guardianAccounts` count query:
+   ```ts
+   const [gaRow] = await db.select({ total: sql<number>`count(*)::int` }).from(guardianAccounts);
+   ```
 
-- [ ] 3. Add `linkApplicationToGuardian` to `src/lib/service.ts`.
+3. Tier breakdown query (GROUP BY `participation_tier`):
+   ```ts
+   const tierRows = await db
+     .select({
+       tier: applications.participationTier,
+       cnt: sql<number>`count(*)::int`,
+     })
+     .from(applications)
+     .groupBy(applications.participationTier)
+     .orderBy(desc(sql`count(*)`));
+   ```
+   Then compute `pct` client-side from `totalApplications`.
 
-  New exported async function that accepts `(reference: string, guardianAccountId: number)`.
-  Updates `applications.guardian_account_id` where `reference_number = reference` and
-  `guardian_account_id IS NULL` (do not overwrite an existing owner). Returns
-  `{ ok: true } | { ok: false, error: string }`.
+4. Status distribution query (GROUP BY `status`):
+   ```ts
+   const statusRows = await db
+     .select({
+       status: applications.status,
+       cnt: sql<number>`count(*)::int`,
+     })
+     .from(applications)
+     .groupBy(applications.status)
+     .orderBy(desc(sql`count(*)`));
+   ```
 
-  This function covers the edge case where a guardian submitted an application before logging in,
-  then logs in later. The `/apply` page can call it post-submit if the user is already authenticated.
+5. Deposit type totals query (posted only, GROUP BY `deposit_type`):
+   ```ts
+   const depositTypeRows = await db
+     .select({
+       depositType: deposits.depositType,
+       totalCents: sql<number>`sum(${deposits.amountCents})::bigint`,
+     })
+     .from(deposits)
+     .where(eq(deposits.status, "posted"))
+     .groupBy(deposits.depositType)
+     .orderBy(desc(sql`sum(${deposits.amountCents})`));
+   ```
 
-  Files to modify:
-  - `src/lib/service.ts` — add after `getApplicationsByGuardianId`.
+6. Run all five queries with `Promise.all` (queries 1-5 above).
 
-  Verify: `npm run typecheck` — no errors.
+7. Return the merged object mapping all `Number(...)` casts.
 
-- [ ] 4. Add `GET /api/guardian/applications` route.
+### `adminGetDepositsByApplication(applicationId: number)` — full signature
 
-  New file at `src/app/api/guardian/applications/route.ts`.
-  - `export const dynamic = "force-dynamic"`
-  - Calls `getSessionGuardian()`. Returns 401 `{ ok: false, error: "Not authenticated." }` if null.
-  - Calls `getApplicationsByGuardianId(guardian.guardianId)`.
-  - Returns `{ ok: true, applications: [...] }`.
+```ts
+export async function adminGetDepositsByApplication(
+  applicationId: number,
+): Promise<DepositRow[]>
+```
 
-  This is the thin route pattern: parse → call service → shape response.
+Implementation: straight `db.select().from(deposits).where(eq(deposits.applicationId, applicationId)).orderBy(deposits.scheduledFor, deposits.createdAt)`.
 
-  Files to create:
-  - `src/app/api/guardian/applications/route.ts`
+### `adminAddDeposit` — full signature
 
-  Verify: `npm run typecheck` — no errors.
+```ts
+export type AdminDepositInput = {
+  depositType: DepositType;          // one of the 5 enum values from schema
+  amountCents: number;               // already converted integer cents
+  description: string;
+  status: DepositStatus;             // "scheduled" | "processing" | "posted" | "returned"
+  scheduledFor: string | null;       // ISO date string or null
+};
 
-- [ ] 5. Update `AuthForm.tsx` — smart post-login redirect.
+export async function adminAddDeposit(
+  applicationId: number,
+  fields: AdminDepositInput,
+): Promise<DepositRow>
+```
 
-  After a successful login or signup response, before navigating, fetch
-  `GET /api/guardian/applications`. Determine the destination:
+Implementation: `db.insert(deposits).values({ applicationId, ...fields, source: "admin", scheduledFor: fields.scheduledFor ? new Date(fields.scheduledFor) : null, postedAt: fields.status === "posted" ? new Date() : null }).returning()`.
 
-  - Fetch throws or returns non-ok → fall back to `/apply` (safe default).
-  - `applications` array is empty → `/apply`.
-  - First application's `status` is `approved` or `funded` → `/dashboard`.
-  - First application's `status` is `submitted`, `under_review`, or `verification_required` →
-    `/verify` (the task says `/verify` or `/status`; use `/verify` for
-    `verification_required` and `/status` for `submitted` / `under_review` to match the
-    natural next action for each state).
+Return the inserted row (first element of the returning array).
 
-  Decision: `verification_required` → `/verify`; `submitted` | `under_review` → `/status`;
-  `approved` | `funded` → `/dashboard`. Unknown statuses fall back to `/apply`.
+### `adminUpdateDeposit` — full signature
 
-  Files to modify:
-  - `src/components/AuthForm.tsx`
+```ts
+export async function adminUpdateDeposit(
+  id: number,
+  fields: Partial<AdminDepositInput>,
+): Promise<{ ok: true } | { ok: false; error: string }>
+```
 
-  Verify: `npm run typecheck` — no errors.
+Implementation: update `deposits` where `eq(deposits.id, id)`. Build the update set object, converting `scheduledFor` to `Date | null`, and setting `postedAt` to `new Date()` when `fields.status === "posted"` and the deposit is not yet posted (fetch current row first). Return `{ ok: true }` on success, `{ ok: false, error: "Not found." }` if `rowCount === 0`.
 
-- [ ] 6. Update `RegistrationWizard.tsx` — redirect to `/dashboard` after submit.
+### `adminDeleteDeposit` — full signature
 
-  Currently the `submit()` function calls `setResult(...)` which renders a confirmation screen
-  inline. Change: after a successful API response, also call `router.push('/dashboard')`.
-  Keep `setResult` so users who somehow land back on `/apply` don't see a blank wizard, but add
-  the redirect as the primary post-submit action.
+```ts
+export async function adminDeleteDeposit(
+  id: number,
+): Promise<{ ok: true } | { ok: false; error: string }>
+```
 
-  Rationale: the task says "redirect to /dashboard instead of showing just a reference number".
-  The cleanest approach is to redirect immediately; the confirmation info will be visible on the
-  dashboard. However, to avoid losing the reference number in case of a redirect timing issue,
-  also keep the `setResult` state — it will be visible for the brief moment before navigation.
+Implementation: `db.delete(deposits).where(eq(deposits.id, id))`. Return `{ ok: false, error: "Not found." }` if `rowCount === 0`.
 
-  Files to modify:
-  - `src/components/RegistrationWizard.tsx`
+**Files:** `src/lib/service.ts`
 
-  Verify: `npm run typecheck` — no errors.
-
-- [ ] 7. Build the guardian dashboard page at `src/app/dashboard/page.tsx`.
-
-  Server component, `force-dynamic`. Auth guard first:
-  - `await getSessionGuardian()` → `null` → `redirect('/login')`.
-  - `await getApplicationsByGuardianId(guardian.guardianId)` → empty → `redirect('/apply')`.
-  - Take the first application (most recently submitted).
-  - Call `getApplicationDetail(application.referenceNumber)` to get deposits, events, and balances.
-
-  Layout (server-rendered, no client component needed):
-  - `PageHero` with breadcrumb `Home › My Dashboard`, eyebrow "Guardian account", title
-    "Your Child Trust Fund account" + child's name.
-  - **Account summary row**: four `StatTile` components showing:
-    - Current balance (posted deposits total), formatted with `formatUSD`.
-    - Scheduled / pending deposits.
-    - Federal deposits (seed + supplements combined).
-    - Guardian contributions total.
-  - **StatusBadge** + reference number + cohort tier label.
-  - **Deposit ledger table** (`usa-table`) — columns: Date, Type, Description, Amount, Status.
-    Date from `postedAt ?? scheduledFor ?? createdAt`. Type label from a local map
-    (`federal_seed` → "Federal seed", etc.). Amount formatted with `formatUSD`. Status as
-    a coloured pill (`usa-tag`).
-  - **Quick actions card** — three `<Link>` buttons:
-    - "Make a contribution" → `/deposit?ref=<reference>`
-    - "Upload documents" → `/status?ref=<reference>&last=<childLastName>`
-    - "View full case" → `/status?ref=<reference>&last=<childLastName>`
-  - **Recent events** — last 5 events from the audit trail, in a simple `<ul>`.
-  - If the guardian has multiple applications (multiple children), show a child-switcher:
-    a `<ul>` of reference links at the top with child name + status badge.
-
-  Use existing CSS classes: `usa-card`, `usa-table`, `usa-tag`, `StatusBadge`, `StatTile`,
-  `PageHero`, `SectionHeading`, `Callout`, `Icon`. Do not create new component files for
-  this page — compose it from the existing primitives.
-
-  Import `formatUSD` from `@/lib/program`. Import `getSessionGuardian` from `@/lib/auth`.
-  Import `getApplicationsByGuardianId`, `getApplicationDetail` from `@/lib/service`.
-
-  Files to create:
-  - `src/app/dashboard/page.tsx`
-
-  Verify: `npm run typecheck` — no errors.
-
-- [ ] 8. Update `src/app/verify/page.tsx` — show pre-filled reference for logged-in guardians.
-
-  The page is currently entirely static. Add a server-side block at the top of the page
-  component that:
-  - Calls `getSessionGuardian()`.
-  - If a session exists, calls `getApplicationsByGuardianId(guardian.guardianId)`.
-  - If there is at least one application, renders a `Callout` (tone "success") at the top of the
-    page body showing: "Your application reference is **CTF-XXXX-XXXXXX**. After you verify,
-    you can track progress on your dashboard." with a Link to `/dashboard`.
-  - If no session, renders nothing extra (the page stays as-is for unauthenticated visitors).
-
-  This satisfies "logged-in guardians see their reference number pre-filled or displayed".
-  The "proceed to /status" action is already covered by the existing "Upload documents now"
-  CTA which links to `/status`.
-
-  Files to modify:
-  - `src/app/verify/page.tsx`
-
-  Verify: `npm run typecheck` — no errors.
-
-- [ ] 9. Update `SiteHeader.tsx` — add "My Dashboard" nav link for authenticated users.
-
-  In the desktop nav `<div className="ml-auto ...">` block, when `me !== null`, add a
-  "My Dashboard" link between the "Signed in as…" span and the "Sign out" button.
-  In the mobile nav footer block, add the same link. Use the `usa-button--outline` style to
-  distinguish it from the "Register a child now" accent button.
-
-  Files to modify:
-  - `src/components/SiteHeader.tsx`
-
-  Verify: `npm run typecheck` — no errors.
-
-- [ ] 10. Add the dashboard page to site navigation and search index.
-
-  - `SiteHeader.tsx` — the "My Dashboard" link added in step 9 is per-user, not part of the
-    static `NAV` array, so no change to `NAV` is needed.
-  - `src/app/search/page.tsx` — add the dashboard to the `PAGES` array so site search can
-    surface it. Since the dashboard is auth-gated, mark its description accordingly.
-  - `SiteFooter.tsx` — no change needed (dashboard is user-specific, not a public page).
-
-  Files to modify:
-  - `src/app/search/page.tsx`
-
-  Verify: `npm run typecheck` — no errors.
-
-- [ ] 11. Run full typecheck and build.
-
-  Run `npm run typecheck` and `npm run build` in that order. Fix any type errors before
-  considering the work done.
-
-  Verify:
-  - `npm run typecheck` — exits 0.
-  - `npm run build` — exits 0 (no build-time errors).
+**Verify:** `npm run typecheck` — no new type errors.
 
 ---
 
-## Notes and assumptions
+## Step 2 — New API routes for deposit CRUD
 
-1. **`SESSION_SECRET` env var**: The first user log shows it missing. This is a deployment
-   concern, not a code defect. The code already throws at `getSecret()` and the signup route's
-   outer catch returns a 500. Add a note in `.env.example` if it is not already there. The plan
-   does not add code to auto-generate a secret — that would require writing to the filesystem
-   at runtime, which is outside scope.
+### 2a. `POST /api/admin/applications/[reference]/deposits`
 
-2. **Multiple children per guardian**: `getApplicationsByGuardianId` returns an array. The
-   dashboard shows a switcher if `applications.length > 1`; otherwise it shows the single child
-   directly without extra chrome.
+Create `src/app/api/admin/applications/[reference]/deposits/route.ts`.
 
-3. **Demo seed data**: The 120 seeded children have `guardian_account_id = NULL`. The dashboard
-   query filters by `guardian_account_id`, so demo rows will never appear on any guardian's
-   dashboard. This is the correct behaviour per the constraint.
+```ts
+import { getAdminSession } from "@/lib/auth";
+import { adminGetApplicationDetail, adminAddDeposit } from "@/lib/service";
+import type { AdminDepositInput } from "@/lib/service";
 
-4. **`linkApplicationToGuardian`** is implemented but not called automatically. It is available
-   for future use (e.g., a "claim this application" flow), but is not wired into any route in
-   this plan because the `/api/applications` POST already sets `guardian_account_id` at creation
-   time when a session exists.
+export const dynamic = "force-dynamic";
 
-5. **`/verify` page is a server component** — `getSessionGuardian()` reads Next.js `cookies()`
-   which is valid in server components. The extra query adds ~1 DB round-trip on page load,
-   which is acceptable for a page that already has no DB queries.
+type Ctx = { params: Promise<{ reference: string }> };
 
-6. **Deposit type labels** used in the dashboard table:
-   - `federal_seed` → "Federal seed deposit"
-   - `state_match` → "State match"
-   - `federal_supplement` → "Federal birthday supplement"
-   - `parent_contribution` → "Guardian contribution"
-   - `earnings` → "Earnings"
+export async function POST(req: Request, ctx: Ctx) {
+  const isAdmin = await getAdminSession();
+  if (!isAdmin) return Response.json({ ok: false, error: "Unauthorized." }, { status: 401 });
 
-7. **Money formatting**: `formatUSD` from `src/lib/program.ts` is used for all displayed amounts.
-   Raw amounts in DB are integer cents; divide by 100 is handled inside `formatUSD`.
+  const { reference } = await ctx.params;
+  try {
+    const body = (await req.json()) as AdminDepositInput;
+    // Validate required fields
+    if (!body.depositType || !body.amountCents || !body.description || !body.status) {
+      return Response.json({ ok: false, error: "Missing required fields." }, { status: 422 });
+    }
+    if (!Number.isFinite(body.amountCents) || body.amountCents <= 0) {
+      return Response.json({ ok: false, error: "Amount must be a positive number." }, { status: 422 });
+    }
+    // Resolve application id from reference
+    const detail = await adminGetApplicationDetail(reference);
+    if (!detail) return Response.json({ ok: false, error: "Application not found." }, { status: 404 });
+    const deposit = await adminAddDeposit(detail.application.id, body);
+    return Response.json({ ok: true, deposit }, { status: 201 });
+  } catch (err) {
+    console.error("Admin add deposit error:", err);
+    return Response.json({ ok: false, error: "Internal server error." }, { status: 500 });
+  }
+}
+```
+
+### 2b. `PUT /api/admin/deposits/[id]`
+
+Create `src/app/api/admin/deposits/[id]/route.ts`.
+
+```ts
+import { getAdminSession } from "@/lib/auth";
+import { adminUpdateDeposit } from "@/lib/service";
+import type { AdminDepositInput } from "@/lib/service";
+
+export const dynamic = "force-dynamic";
+
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function PUT(req: Request, ctx: Ctx) {
+  const isAdmin = await getAdminSession();
+  if (!isAdmin) return Response.json({ ok: false, error: "Unauthorized." }, { status: 401 });
+
+  const { id } = await ctx.params;
+  const numId = Number(id);
+  if (!Number.isFinite(numId)) return Response.json({ ok: false, error: "Invalid id." }, { status: 400 });
+
+  try {
+    const fields = (await req.json()) as Partial<AdminDepositInput>;
+    const result = await adminUpdateDeposit(numId, fields);
+    if (!result.ok) return Response.json({ ok: false, error: result.error }, { status: 404 });
+    return Response.json({ ok: true });
+  } catch (err) {
+    console.error("Admin update deposit error:", err);
+    return Response.json({ ok: false, error: "Internal server error." }, { status: 500 });
+  }
+}
+```
+
+### 2c. `DELETE /api/admin/deposits/[id]`
+
+Add `DELETE` handler to `src/app/api/admin/deposits/[id]/route.ts` (same file as 2b):
+
+```ts
+export async function DELETE(_req: Request, ctx: Ctx) {
+  const isAdmin = await getAdminSession();
+  if (!isAdmin) return Response.json({ ok: false, error: "Unauthorized." }, { status: 401 });
+
+  const { id } = await ctx.params;
+  const numId = Number(id);
+  if (!Number.isFinite(numId)) return Response.json({ ok: false, error: "Invalid id." }, { status: 400 });
+
+  try {
+    const result = await adminDeleteDeposit(numId);
+    if (!result.ok) return Response.json({ ok: false, error: result.error }, { status: 404 });
+    return Response.json({ ok: true });
+  } catch (err) {
+    console.error("Admin delete deposit error:", err);
+    return Response.json({ ok: false, error: "Internal server error." }, { status: 500 });
+  }
+}
+```
+
+**Files to create:**
+- `src/app/api/admin/applications/[reference]/deposits/route.ts`
+- `src/app/api/admin/deposits/[id]/route.ts`
+
+**Verify:** `npm run typecheck` — no errors.
+
+---
+
+## Step 3 — Update `GET /api/admin/stats` to call `adminGetDashboardStats`
+
+**What to do:** Replace `adminGetStats` with `adminGetDashboardStats` in the stats route.
+
+**File:** `src/app/api/admin/stats/route.ts`
+
+Change the import from `adminGetStats` to `adminGetDashboardStats` and the call inside the GET handler:
+
+```ts
+import { getAdminSession } from "@/lib/auth";
+import { adminGetDashboardStats } from "@/lib/service";
+
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const isAdmin = await getAdminSession();
+  if (!isAdmin) {
+    return Response.json({ ok: false, error: "Unauthorized." }, { status: 401 });
+  }
+  try {
+    const stats = await adminGetDashboardStats();
+    return Response.json({ ok: true, stats });
+  } catch (err) {
+    console.error("Admin stats error:", err);
+    return Response.json({ ok: false, error: "Internal server error." }, { status: 500 });
+  }
+}
+```
+
+**Verify:** `npm run typecheck` — no errors.
+
+---
+
+## Step 4 — Create `src/components/admin/DepositsPanel.tsx`
+
+This is the largest new client component. It is a `"use client"` component that manages deposit CRUD inline.
+
+**Props:**
+
+```ts
+type DepositRow = {
+  id: number;
+  depositType: string;
+  amountCents: number;
+  status: string;
+  description: string;
+  scheduledFor: string | null;  // ISO string or null (Date objects not passed to client)
+  postedAt: string | null;
+};
+
+type Props = {
+  reference: string;           // application reference number (for POST URL)
+  initialDeposits: DepositRow[];
+};
+```
+
+**State:** `deposits: DepositRow[]` (starts from `initialDeposits`), `editingId: number | null`, `editFields: Partial<AdminDepositInput>`, `adding: boolean`, `addFields: AdminDepositInput`, `confirmDeleteId: number | null`, `saving: boolean`, `error: string`.
+
+**Balance summary section** (computed from `deposits` state filtered to `status === "posted"`):
+- Federal Total = sum of `depositType` in `["federal_seed", "federal_supplement"]`
+- State Total = sum of `depositType === "state_match"`
+- Contributions = sum of `depositType === "parent_contribution"`
+- Earnings = sum of `depositType === "earnings"`
+- Grand Total = sum of all posted deposits
+
+Render as a `<dl>` grid with 5 `<div>` items, each showing label + `formatUSD(cents)`.
+
+**Table columns:** Type, Description, Amount, Status, Scheduled for, Posted at, Actions
+
+Actions column per row:
+- Edit button → shows inline edit row (replace the `<tr>` with edit inputs)
+- Delete button → sets `confirmDeleteId` (shows a confirmation banner/row)
+
+**Add deposit form** (shown below the table when `adding === true`; toggled by "Add deposit" button above table):
+- `deposit_type`: `<select>` with options: `federal_seed`, `state_match`, `federal_supplement`, `parent_contribution`, `earnings` — display as human-readable labels
+- `amount`: `<input type="number" step="0.01" min="0.01">` — dollar value, converted ×100 on submit
+- `description`: `<input type="text">`
+- `status`: `<select>` with options: `scheduled`, `processing`, `posted`, `returned`
+- `scheduled_for`: `<input type="date">`
+- Submit + Cancel buttons
+
+**Edit row** (inline, replaces the `<tr>` of the deposit being edited):
+- Same fields as add form pre-populated with existing values
+- `PUT /api/admin/deposits/${id}` with `Partial<AdminDepositInput>`
+- On success: update the deposit in `deposits` state, set `editingId = null`, call `router.refresh()`
+
+**Delete flow:**
+- First click sets `confirmDeleteId = id`
+- A small confirm banner appears: "Delete this deposit? This cannot be undone." + Confirm/Cancel buttons
+- On confirm: `DELETE /api/admin/deposits/${id}`, on success: remove from `deposits` state, call `router.refresh()`
+
+**Add flow:**
+- `POST /api/admin/applications/${reference}/deposits` with `AdminDepositInput` (amount in cents)
+- On success: append returned deposit to `deposits` state, hide form, call `router.refresh()`
+
+**Important:** All `Date` fields must be handled as strings when passing to/from the API and storing in state. The component receives serialized ISO strings (or null) from the server page.
+
+**Deposit type display labels mapping:**
+```ts
+const TYPE_LABELS: Record<string, string> = {
+  federal_seed: "Federal Seed",
+  state_match: "State Match",
+  federal_supplement: "Federal Supplement",
+  parent_contribution: "Guardian Contribution",
+  earnings: "Earnings",
+};
+```
+
+**Status badge colors (using existing token classes):**
+- `posted` → `bg-gov-green text-white`
+- `scheduled` → `bg-gov-primary-lighter text-gov-primary-darker`
+- `processing` → `bg-[#fef0c8] text-[#7a5b00]`
+- `returned` → `bg-[#f4e3db] text-gov-red-dark`
+
+**Files:** `src/components/admin/DepositsPanel.tsx`
+
+**Verify:** `npm run typecheck` — no errors.
+
+---
+
+## Step 5 — Update the application detail page to embed `DepositsPanel`
+
+**What to do:** Replace the read-only "Deposit Ledger" section in the detail page with `<DepositsPanel>`. The server page already fetches `deposits` from `adminGetApplicationDetail`. Serialize the deposit rows before passing to the client component (convert `Date | null` to `string | null`).
+
+**File:** `src/app/admin/(protected)/applications/[reference]/page.tsx`
+
+Changes:
+1. Import `DepositsPanel` from `@/components/admin/DepositsPanel`.
+2. Remove the existing read-only deposit ledger `<div className="usa-card mt-6">` block (lines rendering the static deposit table).
+3. Add a serialization step before the return:
+
+```ts
+const serializedDeposits = deposits.map((d) => ({
+  id: d.id,
+  depositType: d.depositType,
+  amountCents: d.amountCents,
+  status: d.status,
+  description: d.description,
+  scheduledFor: d.scheduledFor ? d.scheduledFor.toISOString() : null,
+  postedAt: d.postedAt ? d.postedAt.toISOString() : null,
+}));
+```
+
+4. Add `<DepositsPanel reference={app.referenceNumber} initialDeposits={serializedDeposits} />` inside the existing `<div className="p-6">`, after the right-column grid and before the Documents card.
+
+**Verify:** `npm run build` — no type or build errors.
+
+---
+
+## Step 6 — Create `adminGetDashboardStats`-based dashboard page
+
+**What to do:** Rewrite `src/app/admin/(protected)/page.tsx` to use `adminGetDashboardStats` and render all new sections.
+
+**File:** `src/app/admin/(protected)/page.tsx`
+
+**Full structure:**
+
+### Section 1 — 6 stat tiles
+
+Replace the 4-tile grid with a 6-tile grid (`sm:grid-cols-2 lg:grid-cols-3` then wrap to `lg:grid-cols-6` at XL, or just use a 2-column on mobile / 3-column from md). Use white cards with a colored left border (4px solid). Do NOT use the existing `StatTile` component for this section; build inline `<div>` cards to allow the colored left-border accent style without changing `ui.tsx`.
+
+Six tiles:
+
+| Tile | Value | Border color class |
+|------|-------|--------------------|
+| Total Applications | `stats.totalApplications` | `border-l-gov-navy` → use inline style `borderLeft: "4px solid var(--color-gov-navy)"` |
+| Pending Review | `stats.pendingReview` | `borderLeft: "4px solid var(--color-gov-accent)"` |
+| Approved | `stats.approvedAccounts` | `borderLeft: "4px solid var(--color-gov-primary)"` |
+| Funded | `stats.fundedAccounts` | `borderLeft: "4px solid var(--color-gov-green)"` |
+| Total Posted Deposits | `formatUSD(stats.totalPostedCents)` | `borderLeft: "4px solid var(--color-gov-primary-dark)"` |
+| Total Users | `stats.totalGuardianAccounts` | `borderLeft: "4px solid var(--color-gov-base)"` |
+
+Each tile card structure:
+```jsx
+<div className="usa-card p-5" style={{ borderLeft: "4px solid var(--color-gov-navy)" }}>
+  <p className="font-serif text-2xl font-bold text-gov-navy tabular-nums">{value}</p>
+  <p className="mt-1 text-xs font-bold uppercase tracking-wider text-gov-base">{label}</p>
+</div>
+```
+
+### Section 2 — Tier breakdown
+
+Render `stats.tierBreakdown` as a list of bars. For each tier:
+
+```jsx
+<div key={tier.tier} className="space-y-1">
+  <div className="flex justify-between text-sm">
+    <span className="font-medium text-gov-navy capitalize">
+      {tier.tier === "automatic" ? "Automatic Enrollment" : tier.tier === "standard" ? "Guardian-Funded" : "Legacy"}
+    </span>
+    <span className="text-gov-base">{tier.count.toLocaleString()} ({tier.pct.toFixed(1)}%)</span>
+  </div>
+  <div className="h-2 w-full rounded bg-gov-base-light overflow-hidden">
+    <div className="h-full rounded bg-gov-primary" style={{ width: `${tier.pct}%` }} />
+  </div>
+</div>
+```
+
+Wrap all three in a `<div className="usa-card p-5 mt-6 space-y-4">` with a `<h2>` heading.
+
+Bar colors per tier: automatic → `bg-gov-navy`, standard → `bg-gov-primary`, legacy → `bg-gov-base`.
+
+### Section 3 — Pipeline status distribution
+
+Render `stats.statusDistribution` as a compact table or a list of `<div>` rows, showing status badge + count. Use `StatusBadge` from `@/components/ui`.
+
+```jsx
+<div className="usa-card p-5 mt-6">
+  <h2 className="font-serif text-lg font-semibold text-gov-navy mb-4">Pipeline Status</h2>
+  <div className="space-y-2">
+    {stats.statusDistribution.map((s) => (
+      <div key={s.status} className="flex items-center justify-between text-sm">
+        <StatusBadge status={s.status} />
+        <span className="font-semibold tabular-nums text-gov-navy">{s.count.toLocaleString()}</span>
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+### Section 4 — Deposit type breakdown
+
+Render `stats.depositTypeTotals` as a table with columns: Type, Total Posted.
+
+```jsx
+<div className="usa-card mt-6 overflow-x-auto">
+  <table className="usa-table w-full">
+    <caption>Deposit Type Breakdown (Posted)</caption>
+    <thead><tr><th>Type</th><th>Total Posted</th></tr></thead>
+    <tbody>
+      {stats.depositTypeTotals.map((d) => (
+        <tr key={d.depositType}>
+          <td>{TYPE_LABELS[d.depositType] ?? d.depositType}</td>
+          <td className="font-semibold">{formatUSD(d.totalCents)}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+```
+
+Define `TYPE_LABELS` inline in the file (same mapping as DepositsPanel).
+
+Sections 2–4 can be arranged in a responsive grid: `<div className="mt-6 grid gap-6 lg:grid-cols-3">` with each section in its own column.
+
+### Section 5 — Recent applications table (last 10)
+
+Keep the existing recent-apps table but add a Tier badge column. Fetch with `adminGetAllApplications({ page: 1 })` and take first 10 rows. For the Tier badge, add a helper `TierBadge` inline component in this file (not exported, just used here):
+
+```tsx
+function TierBadge({ tier }: { tier: string }) {
+  const styles = tier === "automatic"
+    ? "bg-gov-primary-lighter text-gov-primary-darker"
+    : tier === "standard"
+    ? "bg-[#ddf9c7] text-gov-green-dark"
+    : "bg-gov-base-light text-gov-navy";
+  return <span className={`usa-tag ${styles}`}>{tier}</span>;
+}
+```
+
+Table columns: Reference (link), Child Name, Guardian, State, Tier, Status, Submitted.
+
+**Imports for this file:** `requireAdminSession`, `adminGetDashboardStats`, `adminGetAllApplications`, `StatusBadge` from `@/components/ui`, `formatUSD` from `@/lib/program`, `Link` from `next/link`.
+
+**Verify:** `npm run build` — clean build.
+
+---
+
+## Step 7 — Applications list: add Balance column and Tier badge
+
+**What to do:** Add two new columns to the applications list table.
+
+**File:** `src/app/admin/(protected)/applications/page.tsx`
+
+1. The `adminGetAllApplications` function returns full `ApplicationRow[]` (it selects `*` from applications). The `ApplicationRow` type does not include a pre-computed balance. To get per-application balances, two options exist:
+   - **Option A (chosen):** Add a `adminGetApplicationBalances(ids: number[]): Promise<Map<number, number>>` to `service.ts` — a single `GROUP BY` query for posted deposit sums for a given set of app IDs. This avoids N+1.
+   - Option B: Compute balance on the page via N+1 queries — rejected.
+
+   Add `adminGetApplicationBalances` to `src/lib/service.ts`:
+   ```ts
+   export async function adminGetApplicationBalances(
+     appIds: number[],
+   ): Promise<Map<number, number>> {
+     if (appIds.length === 0) return new Map();
+     const rows = await db
+       .select({
+         applicationId: deposits.applicationId,
+         totalCents: sql<number>`sum(${deposits.amountCents})::bigint`,
+       })
+       .from(deposits)
+       .where(and(
+         inArray(deposits.applicationId, appIds),
+         eq(deposits.status, "posted"),
+       ))
+       .groupBy(deposits.applicationId);
+     return new Map(rows.map((r) => [r.applicationId, Number(r.totalCents)]));
+   }
+   ```
+   Import `inArray` from `drizzle-orm` (already available via the drizzle import).
+
+2. In `page.tsx`, after fetching `rows`, call:
+   ```ts
+   const balanceMap = await adminGetApplicationBalances(rows.map((r) => r.id));
+   ```
+
+3. Add `import { formatUSD } from "@/lib/program"` to the page.
+
+4. Add a `TierBadge` function (same as defined in step 6) or import from a shared location — keep it inline in this file.
+
+5. Update the `<thead>` to add `<th>Tier</th>` after State, and `<th>Balance</th>` after Status (before Submitted).
+
+6. Update each `<tr>` to add:
+   - After State `<td>`: `<td><TierBadge tier={row.participationTier} /></td>`
+   - After Status `<td>`: `<td className="font-semibold tabular-nums text-sm">{formatUSD(balanceMap.get(row.id) ?? 0)}</td>`
+
+7. Update the `colSpan={7}` on the empty-state `<td>` to `colSpan={9}`.
+
+**Files:** `src/lib/service.ts` (add `adminGetApplicationBalances`), `src/app/admin/(protected)/applications/page.tsx`
+
+**Verify:** `npm run typecheck && npm run build` — clean.
+
+---
+
+## Step 8 — Final build and typecheck verification
+
+**What to do:** Run the full build to confirm no regressions across all files touched.
+
+**Verify:** `npm run typecheck && npm run build` — exits with code 0, no TypeScript errors, no missing exports.
+
+---
+
+## File creation/modification summary (ordered by dependency)
+
+| Order | File | Action |
+|-------|------|--------|
+| 1 | `src/lib/service.ts` | Add `AdminDepositInput`, `AdminDashboardStats`, `adminGetDashboardStats`, `adminGetDepositsByApplication`, `adminAddDeposit`, `adminUpdateDeposit`, `adminDeleteDeposit`, `adminGetApplicationBalances` |
+| 2 | `src/app/api/admin/applications/[reference]/deposits/route.ts` | Create (POST) |
+| 3 | `src/app/api/admin/deposits/[id]/route.ts` | Create (PUT + DELETE) |
+| 4 | `src/app/api/admin/stats/route.ts` | Update import + call |
+| 5 | `src/components/admin/DepositsPanel.tsx` | Create (client component) |
+| 6 | `src/app/admin/(protected)/applications/[reference]/page.tsx` | Replace static ledger with `<DepositsPanel>` |
+| 7 | `src/app/admin/(protected)/page.tsx` | Full redesign with 6 tiles + 3 breakdowns + updated recent table |
+| 8 | `src/app/admin/(protected)/applications/page.tsx` | Add Tier + Balance columns |
+
+## Key decisions
+
+- **`standard` vs `guardian_funded`:** The DB and `program.ts` use `"standard"` as the tier value for guardian-funded accounts. Labels shown in UI say "Guardian-Funded" but filter/compare against `"standard"`. No migration needed.
+- **Balance in applications list:** Single batched `GROUP BY` query (`adminGetApplicationBalances`) rather than N individual queries or a JOIN on the paginated list. Keeps service layer clean and avoids over-fetching full deposit rows.
+- **DepositsPanel state:** Client-side optimistic state update after add/edit/delete plus `router.refresh()` to re-sync server data. No SWR or external library needed.
+- **Date serialization:** Server components convert `Date` objects to ISO strings before passing to `DepositsPanel` to satisfy Next.js strict client-component boundary.
+- **`inArray` import:** Already in `drizzle-orm`; add to the existing destructured import at the top of `service.ts`.
+- **`source` field on admin-created deposits:** Default to `"admin"` string constant — the field is NOT NULL in schema so a value is required.

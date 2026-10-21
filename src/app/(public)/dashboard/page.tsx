@@ -5,7 +5,7 @@ import { Callout, StatusBadge } from "@/components/ui";
 import DashboardChildSwitcher from "@/components/DashboardChildSwitcher";
 import CopyReferenceButton from "@/components/CopyReferenceButton";
 import { getSessionGuardian } from "@/lib/auth";
-import { formatUSD, tierForDob, STATUS_META } from "@/lib/program";
+import { formatUSD, tierForDob } from "@/lib/program";
 import { getApplicationsByGuardianId, getApplicationDetail } from "@/lib/service";
 import { getState } from "@/lib/states";
 
@@ -103,7 +103,8 @@ export default async function DashboardPage({ searchParams }: Props) {
     (d) =>
       d.depositType === "federal_seed" ||
       d.depositType === "state_match" ||
-      d.depositType === "federal_supplement",
+      d.depositType === "federal_supplement" ||
+      d.depositType === "earnings",
   );
 
   const balanceCents = postedDeps.reduce((acc, d) => acc + d.amountCents, 0);
@@ -129,6 +130,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
   // --- Pipeline ---
   const currentStatus = selectedRow.status as string;
+  const isRejected = currentStatus === "rejected";
   const currentStepIndex = PIPELINE_STEPS.findIndex((s) => s.key === currentStatus);
   const effectiveIndex = currentStepIndex === -1 ? 0 : currentStepIndex;
 
@@ -169,7 +171,7 @@ export default async function DashboardPage({ searchParams }: Props) {
           verificationStatus === "in_review" ||
           verificationStatus === "awaiting_documents"
         ? "bg-gov-accent"
-        : "bg-gov-base-light";
+        : "bg-gov-base border border-gov-base-light";
 
   const verificationLabel =
     verificationStatus === "verified"
@@ -586,91 +588,103 @@ export default async function DashboardPage({ searchParams }: Props) {
             Application Pipeline
           </h2>
 
-          {/* Desktop horizontal stepper */}
-          <ol className="hidden list-none items-center gap-0 sm:flex">
-            {PIPELINE_STEPS.map((step, i) => {
-              const isDone = i < effectiveIndex;
-              const isActive = i === effectiveIndex;
-              const isUpcoming = i > effectiveIndex;
+          {isRejected ? (
+            <Callout tone="warning" title="Action required — application not approved">
+              This application could not be approved as filed. Please review the case
+              notes below and{" "}
+              <Link href="/contact" className="font-bold underline">
+                contact support
+              </Link>{" "}
+              to resolve any outstanding issues or to re-apply.
+            </Callout>
+          ) : (
+            <>
+              {/* Desktop horizontal stepper */}
+              <ol className="hidden list-none items-center gap-0 sm:flex">
+                {PIPELINE_STEPS.map((step, i) => {
+                  const isDone = i < effectiveIndex;
+                  const isActive = i === effectiveIndex;
 
-              const circleClass = isDone
-                ? "bg-gov-green text-white"
-                : isActive
-                  ? "bg-gov-primary text-white ring-4 ring-gov-primary-lighter"
-                  : "bg-gov-base-lighter text-gov-base border border-gov-base-light";
+                  const circleClass = isDone
+                    ? "bg-gov-green text-white"
+                    : isActive
+                      ? "bg-gov-primary text-white ring-4 ring-gov-primary-lighter"
+                      : "bg-gov-base-lighter text-gov-base border border-gov-base-light";
 
-              const lineClass =
-                isDone ? "bg-gov-green" : "bg-gov-base-light";
+                  const lineClass =
+                    isDone ? "bg-gov-green" : "bg-gov-base-light";
 
-              const labelClass = isDone
-                ? "text-gov-green-dark font-bold"
-                : isActive
-                  ? "text-gov-primary font-bold"
-                  : "text-gov-base";
+                  const labelClass = isDone
+                    ? "text-gov-green-dark font-bold"
+                    : isActive
+                      ? "text-gov-primary font-bold"
+                      : "text-gov-base";
 
-              return (
-                <li key={step.key} className="flex flex-1 flex-col items-center">
-                  <div className="flex w-full items-center">
-                    {/* Left connector */}
-                    {i > 0 && (
-                      <div
-                        className={`h-0.5 flex-1 ${i <= effectiveIndex ? "bg-gov-green" : "bg-gov-base-light"}`}
-                      />
-                    )}
-                    {/* Circle */}
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${circleClass}`}
-                      aria-current={isActive ? "step" : undefined}
-                    >
-                      {isDone ? "✓" : i + 1}
-                    </div>
-                    {/* Right connector */}
-                    {i < PIPELINE_STEPS.length - 1 && (
-                      <div className={`h-0.5 flex-1 ${lineClass}`} />
-                    )}
-                  </div>
-                  <p className={`mt-2 text-center text-xs ${labelClass}`}>{step.label}</p>
-                </li>
-              );
-            })}
-          </ol>
+                  return (
+                    <li key={step.key} className="flex flex-1 flex-col items-center">
+                      <div className="flex w-full items-center">
+                        {/* Left connector */}
+                        {i > 0 && (
+                          <div
+                            className={`h-0.5 flex-1 ${i <= effectiveIndex ? "bg-gov-green" : "bg-gov-base-light"}`}
+                          />
+                        )}
+                        {/* Circle */}
+                        <div
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${circleClass}`}
+                          aria-current={isActive ? "step" : undefined}
+                        >
+                          {isDone ? "✓" : i + 1}
+                        </div>
+                        {/* Right connector */}
+                        {i < PIPELINE_STEPS.length - 1 && (
+                          <div className={`h-0.5 flex-1 ${lineClass}`} />
+                        )}
+                      </div>
+                      <p className={`mt-2 text-center text-xs ${labelClass}`}>{step.label}</p>
+                    </li>
+                  );
+                })}
+              </ol>
 
-          {/* Mobile vertical timeline */}
-          <ol className="list-none space-y-4 border-l-2 border-gov-base-light pl-4 sm:hidden">
-            {PIPELINE_STEPS.map((step, i) => {
-              const isDone = i < effectiveIndex;
-              const isActive = i === effectiveIndex;
+              {/* Mobile vertical timeline */}
+              <ol className="list-none space-y-4 border-l-2 border-gov-base-light pl-4 sm:hidden">
+                {PIPELINE_STEPS.map((step, i) => {
+                  const isDone = i < effectiveIndex;
+                  const isActive = i === effectiveIndex;
 
-              const dotClass = isDone
-                ? "bg-gov-green"
-                : isActive
-                  ? "bg-gov-primary"
-                  : "bg-gov-base-light border border-gov-base";
+                  const dotClass = isDone
+                    ? "bg-gov-green"
+                    : isActive
+                      ? "bg-gov-primary"
+                      : "bg-gov-base-light border border-gov-base";
 
-              const labelClass = isDone
-                ? "text-gov-green-dark font-bold"
-                : isActive
-                  ? "text-gov-primary font-bold"
-                  : "text-gov-base";
+                  const labelClass = isDone
+                    ? "text-gov-green-dark font-bold"
+                    : isActive
+                      ? "text-gov-primary font-bold"
+                      : "text-gov-base";
 
-              return (
-                <li key={step.key} className="relative flex items-center gap-3">
-                  <span
-                    className={`absolute -left-[1.375rem] flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem] font-bold text-white ${dotClass}`}
-                    aria-current={isActive ? "step" : undefined}
-                  >
-                    {isDone ? "✓" : ""}
-                  </span>
-                  <span className={`text-sm ${labelClass}`}>{step.label}</span>
-                  {isActive && (
-                    <span className="usa-tag bg-gov-primary-lighter text-gov-primary-darker">
-                      Current
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
+                  return (
+                    <li key={step.key} className="relative flex items-center gap-3">
+                      <span
+                        className={`absolute -left-[1.375rem] flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem] font-bold text-white ${dotClass}`}
+                        aria-current={isActive ? "step" : undefined}
+                      >
+                        {isDone ? "✓" : ""}
+                      </span>
+                      <span className={`text-sm ${labelClass}`}>{step.label}</span>
+                      {isActive && (
+                        <span className="usa-tag bg-gov-primary-lighter text-gov-primary-darker">
+                          Current
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </>
+          )}
 
           {/* Last event detail */}
           {lastEvent && (

@@ -897,8 +897,8 @@ export default function RegistrationWizard() {
                   </h3>
                   <p className="mt-1 mb-3 text-sm text-[#3d4551]">
                     At least two documents are required: your government photo ID and the child&apos;s
-                    certified birth certificate. Files stay on your device in this prototype — only
-                    the file name and size are recorded with your application.
+                    certified birth certificate. Only the file name and size are recorded with your
+                    application for security purposes.
                   </p>
                   {files.length > 0 && (
                     <ul className="mb-3 list-none space-y-1 p-0 text-sm">

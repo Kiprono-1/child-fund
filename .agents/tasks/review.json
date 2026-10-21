@@ -1,8 +1,10 @@
 {
-  "verdict": "APPROVED",
+  "verdict": "CHANGES_REQUESTED",
   "findings": [
-    "`getApplicationDetail` not auth-scoped — The function accepts any reference number and returns full deposits, documents, and events with no guardian-id cross-check. In the dashboard the reference comes from the guardian's own query so there is no immediate exploit, but if the function is ever called from a route that accepts a user-supplied reference (e.g., a future `/api/guardian/detail/[ref]`) it would return another guardian's data. Add an optional `guardianAccountId` parameter to `getApplicationDetail` and pass it from the dashboard call site. (confirmed)",
-    "`rejected` status absent from AuthForm routing table — Post-login routing handles `approved`, `funded`, `verification_required`, `submitted`, `under_review`, and falls back to `/apply` for anything else. A guardian with a rejected application silently lands on the registration wizard without seeing the rejection. Route `rejected` to `/status` so the case history is visible. `rejected` is never set by `advanceApplication` today so this is unreachable in the current codebase, but worth a defensive fix. (likely)"
+    "Source field information loss — adminAddDeposit hard-codes source: \"admin\" rather than accepting a source string in AdminDepositInput. Add source?: string to AdminDepositInput, default it to \"admin\" if omitted, and surface a source input in DepositsPanel.",
+    "Dead export adminGetDepositsByApplication — the function is exported but is never called by any route, page, or component. Deposit listing comes from adminGetApplicationDetail. Either wire it into a route or remove it.",
+    "Unsafe double cast in DepositsPanel.submitAdd — dep.scheduledFor as unknown as string and dep.postedAt as unknown as string fight the component's own DepositRow type. The cast branch is dead code; remove it and type the API response field with the component's DepositRow type.",
+    "inArray empty-array guard in adminGetApplicationBalances is correct and necessary (Drizzle produces invalid SQL for empty IN lists) but lacks a comment explaining why the early return is required; add one to prevent future accidental removal."
   ],
   "reviewDoc": "c:\\Users\\kipro\\Downloads\\child-trust-fund-platform (1)\\.agents\\tasks\\review.md"
 }

@@ -262,6 +262,7 @@ export async function getApplicationDetail(
   lastName?: string,
   guardianAccountId?: number,
 ): Promise<ApplicationDetail | null | { error: string }> {
+  await ensureSeedData();
   const [application] = await db
     .select()
     .from(applications)
