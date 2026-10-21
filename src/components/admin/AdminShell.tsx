@@ -91,9 +91,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             onClick={() => setSidebarOpen((v) => !v)}
             className="flex flex-col gap-1.5 p-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gov-accent"
           >
-            <span className="block h-0.5 w-6 bg-white" />
-            <span className="block h-0.5 w-6 bg-white" />
-            <span className="block h-0.5 w-6 bg-white" />
+            <span aria-hidden="true" className="block h-0.5 w-6 bg-white" />
+            <span aria-hidden="true" className="block h-0.5 w-6 bg-white" />
+            <span aria-hidden="true" className="block h-0.5 w-6 bg-white" />
           </button>
           <span className="text-sm font-semibold uppercase tracking-widest text-gov-accent">
             CTF Admin

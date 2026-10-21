@@ -31,8 +31,14 @@ export default function ApplicationEditForm({ reference, initial }: Props) {
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Nullable fields — empty string → null. Required string fields keep their value.
+  const NULLABLE_FIELDS = new Set<keyof EditableFields>(["parentAddressLine2", "childMiddleName"]);
+
   function update(key: keyof EditableFields, value: string) {
-    setFields((prev) => ({ ...prev, [key]: value || null }));
+    setFields((prev) => ({
+      ...prev,
+      [key]: NULLABLE_FIELDS.has(key) ? (value || null) : value,
+    }));
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
