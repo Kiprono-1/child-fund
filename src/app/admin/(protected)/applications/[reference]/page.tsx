@@ -33,6 +33,7 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
     amountCents: d.amountCents,
     status: d.status,
     description: d.description,
+    source: d.source,
     scheduledFor: d.scheduledFor ? d.scheduledFor.toISOString() : null,
     postedAt: d.postedAt ? d.postedAt.toISOString() : null,
   }));

@@ -1594,6 +1594,7 @@ export async function adminUpdateDeposit(
   if ("scheduledFor" in fields) {
     updateSet.scheduledFor = fields.scheduledFor ? new Date(fields.scheduledFor) : null;
   }
+  if (fields.source !== undefined) updateSet.source = fields.source || "Admin Portal";
 
   const result = await db.update(deposits).set(updateSet).where(eq(deposits.id, id));
   if ((result.rowCount ?? 0) === 0) return { ok: false, error: "Not found." };

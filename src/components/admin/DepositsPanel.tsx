@@ -15,6 +15,7 @@ type DepositRow = {
   amountCents: number;
   status: string;
   description: string;
+  source: string;
   scheduledFor: string | null;
   postedAt: string | null;
 };
@@ -25,7 +26,7 @@ type AdminDepositInput = {
   description: string;
   status: DepositStatus;
   scheduledFor: string | null;
-  /** Institution or system that originated the deposit. */
+  /** Institution or system that originated the deposit (defaults to "Admin Portal"). */
   source?: string;
 };
 
@@ -126,6 +127,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
       description: d.description,
       status: d.status as DepositStatus,
       scheduledFor: d.scheduledFor ? d.scheduledFor.slice(0, 10) : null,
+      source: d.source,
     });
     setError("");
   }
@@ -165,9 +167,11 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                   ...(editFields.scheduledFor !== undefined && {
                     scheduledFor: editFields.scheduledFor,
                   }),
-                  ...(editFields.status === "posted" && d.postedAt === null && {
-                    postedAt: new Date().toISOString(),
-                  }),
+                  ...(editFields.source !== undefined && { source: editFields.source }),
+                  ...(editFields.status === "posted" &&
+                    d.postedAt === null && {
+                      postedAt: new Date().toISOString(),
+                    }),
                 }
               : d,
           ),
@@ -223,6 +227,8 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(addFields),
       });
+      // The API serializes Date fields to ISO strings before sending JSON,
+      // so dep.scheduledFor and dep.postedAt are already string | null here.
       const data = (await res.json()) as {
         ok: boolean;
         deposit?: DepositRow;
@@ -238,6 +244,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             amountCents: dep.amountCents,
             status: dep.status,
             description: dep.description,
+            source: dep.source,
             scheduledFor: dep.scheduledFor ?? null,
             postedAt: dep.postedAt ?? null,
           },
@@ -319,7 +326,9 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
           <h3 className="mb-3 font-semibold text-gov-navy">New Deposit</h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label className="usa-label" htmlFor="add-type">Type</label>
+              <label className="usa-label" htmlFor="add-type">
+                Type
+              </label>
               <select
                 id="add-type"
                 className="usa-input"
@@ -340,7 +349,9 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             </div>
 
             <div>
-              <label className="usa-label" htmlFor="add-amount">Amount ($)</label>
+              <label className="usa-label" htmlFor="add-amount">
+                Amount ($)
+              </label>
               <input
                 id="add-amount"
                 type="number"
@@ -358,7 +369,9 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             </div>
 
             <div>
-              <label className="usa-label" htmlFor="add-status">Status</label>
+              <label className="usa-label" htmlFor="add-status">
+                Status
+              </label>
               <select
                 id="add-status"
                 className="usa-input"
@@ -376,20 +389,22 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="usa-label" htmlFor="add-description">Description</label>
+              <label className="usa-label" htmlFor="add-description">
+                Description
+              </label>
               <input
                 id="add-description"
                 type="text"
                 className="usa-input"
                 value={addFields.description}
-                onChange={(e) =>
-                  setAddFields((f) => ({ ...f, description: e.target.value }))
-                }
+                onChange={(e) => setAddFields((f) => ({ ...f, description: e.target.value }))}
               />
             </div>
 
             <div>
-              <label className="usa-label" htmlFor="add-scheduled">Scheduled for</label>
+              <label className="usa-label" htmlFor="add-scheduled">
+                Scheduled for
+              </label>
               <input
                 id="add-scheduled"
                 type="date"
@@ -407,7 +422,9 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             <div className="sm:col-span-2 lg:col-span-3">
               <label className="usa-label" htmlFor="add-source">
                 Source{" "}
-                <span className="text-xs font-normal text-gov-base">(institution name, leave blank for "Admin Portal")</span>
+                <span className="text-xs font-normal text-gov-base">
+                  (institution name — leave blank for &ldquo;Admin Portal&rdquo;)
+                </span>
               </label>
               <input
                 id="add-source"
@@ -452,9 +469,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
           role="alert"
           className="mb-4 flex items-center justify-between rounded border border-gov-red bg-[#fdf3f2] p-3 text-sm"
         >
-          <span className="text-gov-red-dark">
-            Delete this deposit? This cannot be undone.
-          </span>
+          <span className="text-gov-red-dark">Delete this deposit? This cannot be undone.</span>
           <div className="flex gap-2">
             <button
               type="button"
@@ -487,6 +502,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                 <th>Description</th>
                 <th>Amount</th>
                 <th>Status</th>
+                <th>Source</th>
                 <th>Scheduled for</th>
                 <th>Posted at</th>
                 <th>Actions</th>
@@ -539,9 +555,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                         onChange={(e) =>
                           setEditFields((f) => ({
                             ...f,
-                            amountCents: Math.round(
-                              parseFloat(e.target.value || "0") * 100,
-                            ),
+                            amountCents: Math.round(parseFloat(e.target.value || "0") * 100),
                           }))
                         }
                       />
@@ -566,12 +580,24 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                     </td>
                     <td>
                       <input
+                        type="text"
+                        className="usa-input text-sm"
+                        value={editFields.source ?? d.source}
+                        onChange={(e) =>
+                          setEditFields((f) => ({ ...f, source: e.target.value || undefined }))
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
                         type="date"
                         className="usa-input text-sm"
                         value={
                           editFields.scheduledFor !== undefined
                             ? (editFields.scheduledFor ?? "")
-                            : (d.scheduledFor ? d.scheduledFor.slice(0, 10) : "")
+                            : d.scheduledFor
+                              ? d.scheduledFor.slice(0, 10)
+                              : ""
                         }
                         onChange={(e) =>
                           setEditFields((f) => ({
@@ -615,6 +641,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                         {d.status}
                       </span>
                     </td>
+                    <td className="text-sm text-gov-base">{d.source}</td>
                     <td className="text-sm text-gov-base">
                       {d.scheduledFor
                         ? new Date(d.scheduledFor).toLocaleDateString("en-US")
