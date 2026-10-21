@@ -97,7 +97,7 @@ export default function ApplicationStatusPanel({ reference, currentStatus }: Pro
           type="button"
           onClick={handleAdvance}
           disabled={advanceState === "loading"}
-          className="usa-button usa-button--primary text-sm"
+          className="usa-button usa-button--primary w-full text-sm sm:w-auto"
         >
           {advanceState === "loading" ? "Advancing…" : "Approve & advance"}
         </button>
@@ -138,7 +138,7 @@ export default function ApplicationStatusPanel({ reference, currentStatus }: Pro
         <button
           type="submit"
           disabled={overrideState === "saving"}
-          className="usa-button usa-button--outline text-sm"
+          className="usa-button usa-button--outline-dark w-full text-sm sm:w-auto"
         >
           {overrideState === "saving" ? "Saving…" : "Apply override"}
         </button>

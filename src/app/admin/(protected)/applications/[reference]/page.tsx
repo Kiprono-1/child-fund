@@ -59,7 +59,7 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-4 flex items-start justify-between">
         <div>
           <Link href="/admin/applications" className="text-sm text-gov-primary hover:underline">
             ← Back to Applications
@@ -72,11 +72,25 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
         <StatusBadge status={app.status} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Deposit callout banner */}
+      <div className="mb-6 flex items-center gap-3 rounded border-l-4 border-gov-green bg-[#f0faf1] px-4 py-3">
+        <span className="text-2xl" aria-hidden="true">💰</span>
+        <div className="flex-1">
+          <p className="text-sm font-bold text-gov-green-dark">Deposit Ledger</p>
+          <p className="text-xs text-gov-base">
+            View and edit all deposits for this account below.
+          </p>
+        </div>
+        <a href="#deposit-ledger" className="usa-button usa-button--outline-dark shrink-0 text-sm">
+          Go to Ledger ↓
+        </a>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left: status panel + edit form */}
         <div className="space-y-6 lg:col-span-2">
           {/* Approval panel */}
-          <div className="usa-card">
+          <div className="usa-card p-5">
             <h2 className="mb-4 font-serif text-lg font-semibold text-gov-navy">
               Status &amp; Approval
             </h2>
@@ -87,7 +101,7 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
           </div>
 
           {/* Edit form */}
-          <div className="usa-card">
+          <div className="usa-card p-5">
             <h2 className="mb-4 font-serif text-lg font-semibold text-gov-navy">
               Edit Application
             </h2>
@@ -97,7 +111,7 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
 
         {/* Right: summary */}
         <div className="space-y-6">
-          <div className="usa-card text-sm">
+          <div className="usa-card p-5 text-sm">
             <h2 className="mb-3 font-serif text-base font-semibold text-gov-navy">Account Summary</h2>
             <dl className="space-y-2">
               <div className="flex justify-between">
@@ -130,10 +144,12 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
       </div>
 
       {/* Deposit ledger — editable via DepositsPanel */}
-      <DepositsPanel reference={app.referenceNumber} initialDeposits={serializedDeposits} />
+      <div id="deposit-ledger">
+        <DepositsPanel reference={app.referenceNumber} initialDeposits={serializedDeposits} />
+      </div>
 
       {/* Documents */}
-      <div className="usa-card mt-6">
+      <div className="usa-card mt-6 p-5">
         <h2 className="mb-4 font-serif text-lg font-semibold text-gov-navy">Documents</h2>
         {documents.length === 0 ? (
           <p className="text-sm text-gov-base">No documents uploaded.</p>
@@ -168,7 +184,7 @@ export default async function AdminApplicationDetailPage({ params }: Props) {
       </div>
 
       {/* Audit trail */}
-      <div className="usa-card mt-6">
+      <div className="usa-card mt-6 p-5">
         <h2 className="mb-4 font-serif text-lg font-semibold text-gov-navy">Audit Trail</h2>
         {events.length === 0 ? (
           <p className="text-sm text-gov-base">No events recorded.</p>

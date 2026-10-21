@@ -90,7 +90,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
   const [deposits, setDeposits] = useState<DepositRow[]>(initialDeposits);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editFields, setEditFields] = useState<Partial<AdminDepositInput>>({});
-  const [adding, setAdding] = useState(false);
+  // Add form is always visible — no toggle
   const [addFields, setAddFields] = useState<AdminDepositInput>(DEFAULT_ADD);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -227,8 +227,6 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(addFields),
       });
-      // The API serializes Date fields to ISO strings before sending JSON,
-      // so dep.scheduledFor and dep.postedAt are already string | null here.
       const data = (await res.json()) as {
         ok: boolean;
         deposit?: DepositRow;
@@ -249,7 +247,6 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             postedAt: dep.postedAt ?? null,
           },
         ]);
-        setAdding(false);
         setAddFields(DEFAULT_ADD);
         router.refresh();
       } else {
@@ -267,63 +264,23 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
   // ---------------------------------------------------------------- //
 
   return (
-    <div className="usa-card mt-6">
-      {/* Balance summary */}
+    <div className="mt-6">
       <h2 className="mb-4 font-serif text-lg font-semibold text-gov-navy">Deposit Ledger</h2>
 
-      <dl className="mb-6 grid grid-cols-2 gap-3 rounded border border-gov-base-light bg-gov-base-lightest p-4 text-sm sm:grid-cols-5">
-        <div>
-          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">Federal</dt>
-          <dd className="mt-0.5 font-semibold text-gov-navy">{formatUSD(federalTotal)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">State Match</dt>
-          <dd className="mt-0.5 font-semibold text-gov-navy">{formatUSD(stateTotal)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">Contributions</dt>
-          <dd className="mt-0.5 font-semibold text-gov-navy">{formatUSD(contributions)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">Earnings</dt>
-          <dd className="mt-0.5 font-semibold text-gov-navy">{formatUSD(earnings)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">Grand Total</dt>
-          <dd className="mt-0.5 font-serif text-base font-bold text-gov-navy">
-            {formatUSD(grandTotal)}
-          </dd>
-        </div>
-      </dl>
+      {/* ---- Always-visible Add New Deposit form ---- */}
+      <div className="admin-deposit-add-card mb-6">
+        <div className="admin-deposit-add-card__header">📋 Record a New Deposit</div>
+        <div className="admin-deposit-add-card__body">
+          {/* Error banner inside add form */}
+          {error && (
+            <div
+              role="alert"
+              className="mb-4 rounded border-l-4 border-gov-red bg-[#fdf3f2] p-3 text-sm text-gov-red-dark"
+            >
+              {error}
+            </div>
+          )}
 
-      {/* Error banner */}
-      {error && (
-        <div
-          role="alert"
-          className="mb-4 rounded border-l-4 border-gov-red bg-[#fdf3f2] p-3 text-sm text-gov-red-dark"
-        >
-          {error}
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="mb-3 flex justify-end">
-        <button
-          type="button"
-          className="usa-button usa-button--outline text-sm"
-          onClick={() => {
-            setAdding((v) => !v);
-            setError("");
-          }}
-        >
-          {adding ? "Cancel" : "+ Add deposit"}
-        </button>
-      </div>
-
-      {/* Add form */}
-      {adding && (
-        <div className="mb-4 rounded border border-gov-primary-lighter bg-gov-base-lightest p-4">
-          <h3 className="mb-3 font-semibold text-gov-navy">New Deposit</h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <label className="usa-label" htmlFor="add-type">
@@ -421,7 +378,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
 
             <div className="sm:col-span-2 lg:col-span-3">
               <label className="usa-label" htmlFor="add-source">
-                Source{" "}
+                Source / Notes{" "}
                 <span className="text-xs font-normal text-gov-base">
                   (institution name — leave blank for &ldquo;Admin Portal&rdquo;)
                 </span>
@@ -439,41 +396,99 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             </div>
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              className="usa-button usa-button--primary text-sm"
+              className="usa-button w-full text-sm sm:w-auto"
+              style={{
+                backgroundColor: "var(--color-gov-green)",
+                borderColor: "var(--color-gov-green)",
+                color: "#ffffff",
+              }}
               disabled={saving}
               onClick={submitAdd}
             >
-              {saving ? "Saving…" : "Save deposit"}
+              {saving ? "Saving…" : "💾 Save Deposit"}
             </button>
             <button
               type="button"
-              className="usa-button usa-button--outline text-sm"
+              className="usa-button usa-button--outline-dark w-full text-sm sm:w-auto"
               onClick={() => {
-                setAdding(false);
                 setAddFields(DEFAULT_ADD);
                 setError("");
               }}
             >
-              Cancel
+              Clear form
             </button>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* ---- Balance summary tiles ---- */}
+      <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div
+          className="admin-balance-tile"
+          style={{ borderTop: "4px solid var(--color-gov-primary)" }}
+        >
+          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">Federal</dt>
+          <dd className="mt-1 font-serif text-xl font-bold text-gov-navy">
+            {formatUSD(federalTotal)}
+          </dd>
+        </div>
+        <div
+          className="admin-balance-tile"
+          style={{ borderTop: "4px solid var(--color-gov-green)" }}
+        >
+          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">State Match</dt>
+          <dd className="mt-1 font-serif text-xl font-bold text-gov-navy">
+            {formatUSD(stateTotal)}
+          </dd>
+        </div>
+        <div
+          className="admin-balance-tile"
+          style={{ borderTop: "4px solid var(--color-gov-accent)" }}
+        >
+          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">Contributions</dt>
+          <dd className="mt-1 font-serif text-xl font-bold text-gov-navy">
+            {formatUSD(contributions)}
+          </dd>
+        </div>
+        <div
+          className="admin-balance-tile"
+          style={{ borderTop: "4px solid var(--color-gov-warm)" }}
+        >
+          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">Earnings</dt>
+          <dd className="mt-1 font-serif text-xl font-bold text-gov-navy">
+            {formatUSD(earnings)}
+          </dd>
+        </div>
+        <div
+          className="admin-balance-tile col-span-2 sm:col-span-1"
+          style={{ borderTop: "4px solid var(--color-gov-navy)" }}
+        >
+          <dt className="text-xs font-bold uppercase tracking-wider text-gov-base">Grand Total</dt>
+          <dd className="mt-1 font-serif text-xl font-bold text-gov-navy">
+            {formatUSD(grandTotal)}
+          </dd>
+        </div>
+      </dl>
 
       {/* Delete confirmation */}
       {confirmDeleteId !== null && (
         <div
           role="alert"
-          className="mb-4 flex items-center justify-between rounded border border-gov-red bg-[#fdf3f2] p-3 text-sm"
+          className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded border border-gov-red bg-[#fdf3f2] p-3 text-sm"
         >
           <span className="text-gov-red-dark">Delete this deposit? This cannot be undone.</span>
           <div className="flex gap-2">
             <button
               type="button"
-              className="usa-button usa-button--secondary text-sm"
+              className="usa-button text-sm"
+              style={{
+                backgroundColor: "var(--color-gov-red)",
+                borderColor: "var(--color-gov-red)",
+                color: "#ffffff",
+              }}
               disabled={saving}
               onClick={() => confirmDelete(confirmDeleteId)}
             >
@@ -481,7 +496,7 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
             </button>
             <button
               type="button"
-              className="usa-button usa-button--outline text-sm"
+              className="usa-button usa-button--outline-dark text-sm"
               onClick={() => setConfirmDeleteId(null)}
             >
               Cancel
@@ -490,31 +505,24 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
         </div>
       )}
 
-      {/* Table */}
+      {/* ---- Mobile card view (hidden on sm+) ---- */}
       {deposits.length === 0 ? (
         <p className="text-sm text-gov-base">No deposits yet.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="usa-table w-full">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Source</th>
-                <th>Scheduled for</th>
-                <th>Posted at</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deposits.map((d) =>
-                editingId === d.id ? (
-                  // ---- Edit row ---- //
-                  <tr key={d.id} className="bg-gov-base-lightest">
-                    <td>
+        <>
+          <div className="space-y-3 sm:hidden">
+            {deposits.map((d) =>
+              editingId === d.id ? (
+                // Mobile edit form
+                <div key={d.id} className="usa-card p-4">
+                  <h3 className="mb-3 font-semibold text-gov-navy">Editing Deposit</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="usa-label text-xs" htmlFor={`m-edit-type-${d.id}`}>
+                        Type
+                      </label>
                       <select
+                        id={`m-edit-type-${d.id}`}
                         className="usa-input text-sm"
                         value={editFields.depositType ?? d.depositType}
                         onChange={(e) =>
@@ -530,19 +538,13 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                           </option>
                         ))}
                       </select>
-                    </td>
-                    <td>
+                    </div>
+                    <div>
+                      <label className="usa-label text-xs" htmlFor={`m-edit-amount-${d.id}`}>
+                        Amount ($)
+                      </label>
                       <input
-                        type="text"
-                        className="usa-input text-sm"
-                        value={editFields.description ?? d.description}
-                        onChange={(e) =>
-                          setEditFields((f) => ({ ...f, description: e.target.value }))
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
+                        id={`m-edit-amount-${d.id}`}
                         type="number"
                         step="0.01"
                         min="0.01"
@@ -559,9 +561,27 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                           }))
                         }
                       />
-                    </td>
-                    <td>
+                    </div>
+                    <div>
+                      <label className="usa-label text-xs" htmlFor={`m-edit-desc-${d.id}`}>
+                        Description
+                      </label>
+                      <input
+                        id={`m-edit-desc-${d.id}`}
+                        type="text"
+                        className="usa-input text-sm"
+                        value={editFields.description ?? d.description}
+                        onChange={(e) =>
+                          setEditFields((f) => ({ ...f, description: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="usa-label text-xs" htmlFor={`m-edit-status-${d.id}`}>
+                        Status
+                      </label>
                       <select
+                        id={`m-edit-status-${d.id}`}
                         className="usa-input text-sm"
                         value={editFields.status ?? d.status}
                         onChange={(e) =>
@@ -577,9 +597,13 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                           </option>
                         ))}
                       </select>
-                    </td>
-                    <td>
+                    </div>
+                    <div>
+                      <label className="usa-label text-xs" htmlFor={`m-edit-source-${d.id}`}>
+                        Source / Notes
+                      </label>
                       <input
+                        id={`m-edit-source-${d.id}`}
                         type="text"
                         className="usa-input text-sm"
                         value={editFields.source ?? d.source}
@@ -587,9 +611,13 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                           setEditFields((f) => ({ ...f, source: e.target.value || undefined }))
                         }
                       />
-                    </td>
-                    <td>
+                    </div>
+                    <div>
+                      <label className="usa-label text-xs" htmlFor={`m-edit-sched-${d.id}`}>
+                        Scheduled for
+                      </label>
                       <input
+                        id={`m-edit-sched-${d.id}`}
                         type="date"
                         className="usa-input text-sm"
                         value={
@@ -606,79 +634,275 @@ export default function DepositsPanel({ reference, initialDeposits }: Props) {
                           }))
                         }
                       />
-                    </td>
-                    <td className="text-sm text-gov-base">
-                      {d.postedAt ? new Date(d.postedAt).toLocaleDateString("en-US") : "—"}
-                    </td>
-                    <td>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          className="usa-button usa-button--primary text-xs"
-                          disabled={saving}
-                          onClick={() => saveEdit(d.id)}
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      type="button"
+                      className="usa-button usa-button--primary flex-1 text-sm"
+                      disabled={saving}
+                      onClick={() => saveEdit(d.id)}
+                    >
+                      {saving ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      className="usa-button usa-button--outline-dark flex-1 text-sm"
+                      onClick={cancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Mobile read card
+                <div key={d.id} className="usa-card p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-gov-navy">
+                        {TYPE_LABELS[d.depositType] ?? d.depositType}
+                      </p>
+                      <p className="text-xs text-gov-base">{d.description}</p>
+                    </div>
+                    <span className={`usa-tag text-xs ${statusClass(d.status)}`}>
+                      {d.status}
+                    </span>
+                  </div>
+                  <p className="mt-2 font-serif text-xl font-bold text-gov-navy">
+                    {formatUSD(d.amountCents)}
+                  </p>
+                  <p className="mt-1 text-xs text-gov-base">
+                    {d.source}
+                    {d.scheduledFor
+                      ? ` · Scheduled ${new Date(d.scheduledFor).toLocaleDateString("en-US")}`
+                      : ""}
+                    {d.postedAt
+                      ? ` · Posted ${new Date(d.postedAt).toLocaleDateString("en-US")}`
+                      : ""}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      className="usa-button usa-button--outline-dark flex-1 text-sm"
+                      onClick={() => startEdit(d)}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="usa-button flex-1 text-sm"
+                      style={{
+                        backgroundColor: "var(--color-gov-red)",
+                        borderColor: "var(--color-gov-red)",
+                        color: "#ffffff",
+                      }}
+                      onClick={() => {
+                        setConfirmDeleteId(d.id);
+                        setError("");
+                      }}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+
+          {/* ---- Desktop table (hidden on mobile) ---- */}
+          <div className="hidden overflow-x-auto sm:block">
+            <table className="usa-table w-full">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Source / Notes</th>
+                  <th>Scheduled for</th>
+                  <th>Posted at</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deposits.map((d) =>
+                  editingId === d.id ? (
+                    // ---- Edit row ---- //
+                    <tr key={d.id} className="bg-gov-base-lightest">
+                      <td>
+                        <select
+                          className="usa-input text-sm"
+                          value={editFields.depositType ?? d.depositType}
+                          onChange={(e) =>
+                            setEditFields((f) => ({
+                              ...f,
+                              depositType: e.target.value as DepositType,
+                            }))
+                          }
                         >
-                          {saving ? "…" : "Save"}
-                        </button>
-                        <button
-                          type="button"
-                          className="usa-button usa-button--outline text-xs"
-                          onClick={cancelEdit}
+                          {DEPOSIT_TYPES.map((t) => (
+                            <option key={t} value={t}>
+                              {TYPE_LABELS[t] ?? t}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className="usa-input text-sm"
+                          value={editFields.description ?? d.description}
+                          onChange={(e) =>
+                            setEditFields((f) => ({ ...f, description: e.target.value }))
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          className="usa-input text-sm"
+                          value={
+                            editFields.amountCents !== undefined
+                              ? (editFields.amountCents / 100).toFixed(2)
+                              : (d.amountCents / 100).toFixed(2)
+                          }
+                          onChange={(e) =>
+                            setEditFields((f) => ({
+                              ...f,
+                              amountCents: Math.round(parseFloat(e.target.value || "0") * 100),
+                            }))
+                          }
+                        />
+                      </td>
+                      <td>
+                        <select
+                          className="usa-input text-sm"
+                          value={editFields.status ?? d.status}
+                          onChange={(e) =>
+                            setEditFields((f) => ({
+                              ...f,
+                              status: e.target.value as DepositStatus,
+                            }))
+                          }
                         >
-                          Cancel
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  // ---- Read row ---- //
-                  <tr key={d.id}>
-                    <td className="text-sm">{TYPE_LABELS[d.depositType] ?? d.depositType}</td>
-                    <td className="text-sm text-gov-base">{d.description}</td>
-                    <td className="font-semibold">{formatUSD(d.amountCents)}</td>
-                    <td>
-                      <span className={`usa-tag text-xs ${statusClass(d.status)}`}>
-                        {d.status}
-                      </span>
-                    </td>
-                    <td className="text-sm text-gov-base">{d.source}</td>
-                    <td className="text-sm text-gov-base">
-                      {d.scheduledFor
-                        ? new Date(d.scheduledFor).toLocaleDateString("en-US")
-                        : "—"}
-                    </td>
-                    <td className="text-sm text-gov-base">
-                      {d.postedAt
-                        ? new Date(d.postedAt).toLocaleDateString("en-US")
-                        : "—"}
-                    </td>
-                    <td>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          className="usa-button usa-button--outline text-xs"
-                          onClick={() => startEdit(d)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="text-xs text-gov-red hover:underline"
-                          onClick={() => {
-                            setConfirmDeleteId(d.id);
-                            setError("");
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ),
-              )}
-            </tbody>
-          </table>
-        </div>
+                          {DEPOSIT_STATUSES.map((s) => (
+                            <option key={s} value={s}>
+                              {s.charAt(0).toUpperCase() + s.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className="usa-input text-sm"
+                          value={editFields.source ?? d.source}
+                          onChange={(e) =>
+                            setEditFields((f) => ({ ...f, source: e.target.value || undefined }))
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="date"
+                          className="usa-input text-sm"
+                          value={
+                            editFields.scheduledFor !== undefined
+                              ? (editFields.scheduledFor ?? "")
+                              : d.scheduledFor
+                                ? d.scheduledFor.slice(0, 10)
+                                : ""
+                          }
+                          onChange={(e) =>
+                            setEditFields((f) => ({
+                              ...f,
+                              scheduledFor: e.target.value || null,
+                            }))
+                          }
+                        />
+                      </td>
+                      <td className="text-sm text-gov-base">
+                        {d.postedAt ? new Date(d.postedAt).toLocaleDateString("en-US") : "—"}
+                      </td>
+                      <td>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            className="usa-button usa-button--primary text-xs"
+                            disabled={saving}
+                            onClick={() => saveEdit(d.id)}
+                          >
+                            {saving ? "…" : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            className="usa-button usa-button--outline-dark text-xs"
+                            onClick={cancelEdit}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    // ---- Read row ---- //
+                    <tr key={d.id}>
+                      <td className="text-sm">{TYPE_LABELS[d.depositType] ?? d.depositType}</td>
+                      <td className="text-sm text-gov-base">{d.description}</td>
+                      <td className="font-serif text-base font-bold tabular-nums text-gov-navy">
+                        {formatUSD(d.amountCents)}
+                      </td>
+                      <td>
+                        <span className={`usa-tag text-xs ${statusClass(d.status)}`}>
+                          {d.status}
+                        </span>
+                      </td>
+                      <td className="text-sm text-gov-base">{d.source}</td>
+                      <td className="text-sm text-gov-base">
+                        {d.scheduledFor
+                          ? new Date(d.scheduledFor).toLocaleDateString("en-US")
+                          : "—"}
+                      </td>
+                      <td className="text-sm text-gov-base">
+                        {d.postedAt
+                          ? new Date(d.postedAt).toLocaleDateString("en-US")
+                          : "—"}
+                      </td>
+                      <td>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            className="usa-button usa-button--outline-dark text-sm"
+                            onClick={() => startEdit(d)}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="usa-button text-sm"
+                            style={{
+                              backgroundColor: "var(--color-gov-red)",
+                              borderColor: "var(--color-gov-red)",
+                              color: "#ffffff",
+                            }}
+                            onClick={() => {
+                              setConfirmDeleteId(d.id);
+                              setError("");
+                            }}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ),
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

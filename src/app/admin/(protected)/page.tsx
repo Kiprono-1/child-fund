@@ -51,13 +51,13 @@ export default async function AdminDashboardPage() {
       <h1 className="font-serif text-2xl font-bold text-gov-navy">Dashboard</h1>
       <p className="mt-1 text-sm text-gov-base">Live program overview</p>
 
-      {/* ---- 6 stat tiles ---- */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* ---- 6 stat tiles — 2-col on mobile, 3-col on lg ---- */}
+      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
         <div
-          className="usa-card p-5"
+          className="usa-card p-5 admin-stat-tile"
           style={{ borderLeft: "4px solid var(--color-gov-navy)" }}
         >
-          <p className="font-serif text-2xl font-bold text-gov-navy tabular-nums">
+          <p className="font-serif text-3xl font-bold text-gov-navy tabular-nums">
             {stats.totalApplications.toLocaleString()}
           </p>
           <p className="mt-1 text-xs font-bold uppercase tracking-wider text-gov-base">
@@ -66,10 +66,10 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div
-          className="usa-card p-5"
+          className="usa-card p-5 admin-stat-tile"
           style={{ borderLeft: "4px solid var(--color-gov-accent)" }}
         >
-          <p className="font-serif text-2xl font-bold text-gov-navy tabular-nums">
+          <p className="font-serif text-3xl font-bold text-gov-navy tabular-nums">
             {stats.pendingReview.toLocaleString()}
           </p>
           <p className="mt-1 text-xs font-bold uppercase tracking-wider text-gov-base">
@@ -78,10 +78,10 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div
-          className="usa-card p-5"
+          className="usa-card p-5 admin-stat-tile"
           style={{ borderLeft: "4px solid var(--color-gov-primary)" }}
         >
-          <p className="font-serif text-2xl font-bold text-gov-navy tabular-nums">
+          <p className="font-serif text-3xl font-bold text-gov-navy tabular-nums">
             {stats.approvedAccounts.toLocaleString()}
           </p>
           <p className="mt-1 text-xs font-bold uppercase tracking-wider text-gov-base">
@@ -90,10 +90,10 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div
-          className="usa-card p-5"
+          className="usa-card p-5 admin-stat-tile"
           style={{ borderLeft: "4px solid var(--color-gov-green)" }}
         >
-          <p className="font-serif text-2xl font-bold text-gov-navy tabular-nums">
+          <p className="font-serif text-3xl font-bold text-gov-navy tabular-nums">
             {stats.fundedAccounts.toLocaleString()}
           </p>
           <p className="mt-1 text-xs font-bold uppercase tracking-wider text-gov-base">
@@ -102,10 +102,10 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div
-          className="usa-card p-5"
+          className="usa-card p-5 admin-stat-tile"
           style={{ borderLeft: "4px solid var(--color-gov-primary-dark, var(--color-gov-primary))" }}
         >
-          <p className="font-serif text-2xl font-bold text-gov-navy tabular-nums">
+          <p className="font-serif text-3xl font-bold text-gov-navy tabular-nums">
             {formatUSD(stats.totalPostedCents)}
           </p>
           <p className="mt-1 text-xs font-bold uppercase tracking-wider text-gov-base">
@@ -114,10 +114,10 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div
-          className="usa-card p-5"
+          className="usa-card p-5 admin-stat-tile"
           style={{ borderLeft: "4px solid var(--color-gov-base)" }}
         >
-          <p className="font-serif text-2xl font-bold text-gov-navy tabular-nums">
+          <p className="font-serif text-3xl font-bold text-gov-navy tabular-nums">
             {stats.totalGuardianAccounts.toLocaleString()}
           </p>
           <p className="mt-1 text-xs font-bold uppercase tracking-wider text-gov-base">
@@ -204,7 +204,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* ---- Recent applications ---- */}
-      <div className="usa-card mt-8">
+      <div className="usa-card mt-8 p-5">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-serif text-lg font-semibold text-gov-navy">
             Recent Applications
@@ -214,7 +214,37 @@ export default async function AdminDashboardPage() {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile card list — hidden on sm+ */}
+        <div className="space-y-3 sm:hidden">
+          {recent.map((row) => (
+            <div key={row.referenceNumber} className="usa-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <Link
+                  href={`/admin/applications/${row.referenceNumber}`}
+                  className="font-mono text-sm font-bold text-gov-primary hover:underline"
+                >
+                  {row.referenceNumber}
+                </Link>
+                <StatusBadge status={row.status} />
+              </div>
+              <p className="mt-1 text-sm font-medium text-gov-navy">
+                {row.childFirstName} {row.childLastName}
+              </p>
+              <p className="mt-0.5 text-xs text-gov-base">
+                {row.parentFullName} · {row.parentState}
+              </p>
+              <p className="mt-1 text-xs text-gov-base">
+                Submitted {new Date(row.submittedAt).toLocaleDateString("en-US")}
+              </p>
+            </div>
+          ))}
+          {recent.length === 0 && (
+            <p className="py-4 text-center text-sm text-gov-base">No applications yet.</p>
+          )}
+        </div>
+
+        {/* Desktop table — hidden on mobile */}
+        <div className="hidden overflow-x-auto sm:block">
           <table className="usa-table w-full">
             <thead>
               <tr>

@@ -48,7 +48,55 @@ export default async function AdminApplicationsPage({
         </Suspense>
       </div>
 
-      <div className="usa-card mt-6 overflow-x-auto">
+      {/* Mobile card list — hidden on sm+ */}
+      <div className="mt-6 space-y-3 sm:hidden">
+        {rows.map((row) => (
+          <div key={row.referenceNumber} className="usa-card p-4">
+            <div className="flex items-start justify-between gap-2">
+              <Link
+                href={`/admin/applications/${row.referenceNumber}`}
+                className="font-mono text-sm font-bold text-gov-primary hover:underline"
+              >
+                {row.referenceNumber}
+              </Link>
+              <StatusBadge status={row.status} />
+            </div>
+            <p className="mt-1 text-sm font-semibold text-gov-navy">
+              {row.childFirstName} {row.childLastName}
+            </p>
+            <p className="mt-0.5 text-xs text-gov-base">
+              Guardian: {row.parentFullName}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gov-base">
+              <span>{row.parentState}</span>
+              <span>·</span>
+              <TierBadge tier={row.participationTier} />
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm font-semibold tabular-nums text-gov-navy">
+                {formatUSD(balanceMap.get(row.id) ?? 0)}
+              </span>
+              <span className="text-xs text-gov-base">
+                {new Date(row.submittedAt).toLocaleDateString("en-US")}
+              </span>
+            </div>
+            <Link
+              href={`/admin/applications/${row.referenceNumber}`}
+              className="usa-button usa-button--primary mt-3 block w-full text-center text-sm"
+            >
+              Open
+            </Link>
+          </div>
+        ))}
+        {rows.length === 0 && (
+          <p className="py-8 text-center text-sm text-gov-base">
+            No applications match your filters.
+          </p>
+        )}
+      </div>
+
+      {/* Desktop table — hidden on mobile */}
+      <div className="usa-card mt-6 hidden overflow-x-auto sm:block">
         <table className="usa-table w-full">
           <thead>
             <tr>

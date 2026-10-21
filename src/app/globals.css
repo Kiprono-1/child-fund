@@ -228,6 +228,50 @@
   left: 0;
 }
 
+/* Admin sidebar overlay (mobile) */
+.admin-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 39;
+}
+
+/* Admin deposit-add card — prominent green header strip */
+.admin-deposit-add-card {
+  border: 2px solid var(--color-gov-green);
+  border-radius: 0.35rem;
+  overflow: hidden;
+}
+.admin-deposit-add-card__header {
+  background: var(--color-gov-green);
+  color: #ffffff;
+  padding: 0.85rem 1.1rem;
+  font-weight: 700;
+  font-size: 1rem;
+}
+.admin-deposit-add-card__body {
+  padding: 1.1rem;
+  background: #ffffff;
+}
+
+/* Balance summary tile with colored top border */
+.admin-balance-tile {
+  background: #ffffff;
+  border: 1px solid var(--color-gov-base-light);
+  border-radius: 0.35rem;
+  padding: 1rem 1.1rem;
+}
+
+/* Stat tile hover lift */
+.admin-stat-tile {
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+  cursor: default;
+}
+.admin-stat-tile:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
 @media print {
   .no-print {
     display: none !important;

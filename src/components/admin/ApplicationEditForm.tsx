@@ -178,7 +178,7 @@ export default function ApplicationEditForm({ reference, initial }: Props) {
 
       <button
         type="submit"
-        className="usa-button usa-button--primary"
+        className="usa-button usa-button--primary w-full sm:w-auto"
         disabled={status === "saving"}
       >
         {status === "saving" ? "Saving…" : "Save changes"}
