@@ -37,11 +37,12 @@ export default async function ApplyPage() {
             <ul className="mt-3 mb-0 list-none space-y-2 p-0 text-sm text-[#3d4551]">
               {[
                 "Child's certified birth certificate details",
-                "Child's Social Security number (last 4 only here)",
+                "Child's Social Security number (last 4 digits)",
                 "Your government photo ID",
                 "Your state of legal residence",
                 "Custodian bank routing + account numbers",
-                "About 10 minutes, no fee",
+                "Initial deposit of $1,500.00 per child",
+                "About 10–15 minutes, no fee",
               ].map((i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="mt-0.5 text-gov-green-dark">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ACCOUNT_TYPES, formatUSD } from "@/lib/program";
+import { ACCOUNT_TYPES, MINIMUM_INITIAL_DEPOSIT_CENTS, formatUSD } from "@/lib/program";
 
 type Detail = {
   application: {
@@ -39,7 +39,8 @@ export default function DepositForm({ initialRef = "" }: { initialRef?: string }
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [amount, setAmount] = useState(100);
+  const minDeposit = MINIMUM_INITIAL_DEPOSIT_CENTS / 100; // 1500
+  const [amount, setAmount] = useState(minDeposit);
   const [recurring, setRecurring] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -212,7 +213,7 @@ export default function DepositForm({ initialRef = "" }: { initialRef?: string }
               </p>
 
               <div className="flex flex-wrap gap-2">
-                {[25, 50, 100, 250, 500].map((v) => (
+                {[1500, 2000, 2500, 3000, 5000].map((v) => (
                   <button
                     key={v}
                     type="button"
@@ -236,14 +237,14 @@ export default function DepositForm({ initialRef = "" }: { initialRef?: string }
                   <input
                     id="dep-amount"
                     type="number"
-                    min={1}
+                    min={minDeposit}
                     max={5000}
                     step={1}
                     className="usa-input"
                     value={amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
                   />
-                  <span className="usa-hint">Annual limit: $5,000 per child.</span>
+                  <span className="usa-hint">Minimum deposit: $1,500. Annual limit: $5,000 per child.</span>
                 </div>
                 <div className="flex items-end pb-2">
                   <label className="flex items-center gap-2 text-sm">

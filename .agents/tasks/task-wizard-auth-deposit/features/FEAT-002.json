@@ -1,0 +1,38 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Rewrite RegistrationWizard.tsx as a 7-step multi-child wizard. Step 0 asks how many children (1–5). Steps 1-5 loop per child (child info, child account). Step 6 is Review & Certify. Guardian fields are captured once. The wizard submits one application per child sequentially and redirects to /dashboard on success. Also update DepositForm.tsx to enforce the $1,500 minimum. This feature is independent of FEAT-003 (auth form).",
+  "status": "completed",
+  "steps": [
+    "1. Design the new FormState type in RegistrationWizard.tsx. Guardian data is top-level (same fields as before). Add `numChildren: number` (1–5). Add `children: ChildEntry[]` where ChildEntry = { firstName, middleName, lastName, dob, gender, ssnLast4, birthCity, birthState, accountType, custodianBank, routingNumber, accountLast4, initialDepositDollars, verificationMethod }.",
+    "2. Define STEP_NAMES as 7 entries: ['How Many Children', 'Guardian', 'Residence & State', 'Child {N} – Details', 'Child {N} – Account', 'Verification', 'Review & Certify']. Steps 3-4 repeat per child (tracked via childIndex state). Progress bar shows overall progress across all per-child repetitions.",
+    "3. Implement strict validation in a new validate(step, childIndex) function: Step 0: numChildren 1–5. Step 1 (Guardian): parentFullName must have 2+ words; parentDob must be 18+ years ago; parentSsnLast4 exactly 4 digits; parentEmail valid regex; parentPhone digits-only length === 10; parentRelationship required. Step 2 (Residence): same as before. Step 3 (Child Details): firstName/lastName match /^[A-Za-z\\-']+$/ (letters, hyphens, apostrophes); childDob must be in the past and under 18 years old; childSsnLast4 exactly 4 digits; birthCity required (make it required); birthState required. Step 4 (Child Account): routingNumber exactly 9 digits; accountLast4 exactly 4 digits; custodianBank required; accountType required; initialDepositDollars >= 1500 (enforced using MINIMUM_INITIAL_DEPOSIT_CENTS / 100). Step 5 (Verification): verificationMethod required. Step 6 (Review): identityConsent, penaltyOfPerjury, electronicSignature matches parentFullName.",
+    "4. Build the Step 0 UI: a clean card with a headline 'How many children are you registering?', radio buttons or a number input (1–5), and a brief note 'A $1,500.00 initial deposit is required per child. You will enter details for each child separately.'",
+    "5. Build Steps 1 and 2 (Guardian and Residence) — these are identical to the current wizard steps 0 and 1 but with the enhanced validation from step 3 above. Add a DOB age-18 check with a friendly error message 'Guardian must be 18 or older.' Add a name two-word check 'Enter your first and last name.'",
+    "6. Build Steps 3 and 4 (Child Details and Child Account) as looping steps. Show 'Child {childIndex+1} of {numChildren}' in the step header. childBirthCity is now required (add the required star and error). initialDepositDollars field with min=1500, default=1500, label 'Initial deposit (minimum $1,500.00)', hint 'This one-time deposit opens the child account. Contact admin to arrange payment.'. Show live total: numChildren × $1,500 = $X,XXX.00.",
+    "7. Build Step 5 (Verification) — same as current step 4.",
+    "8. Build Step 6 (Review & Certify) — show a summary table of guardian info + all children's names and deposit amounts. Show grand total deposit = numChildren × initialDepositDollars (use max). Certification checkboxes and electronic signature as before.",
+    "9. Update the submit() function to POST to /api/applications once per child, reusing the same guardian fields but with per-child data. Use childIndex to iterate. On any failure, surface the error and stop. On full success, clear localStorage and call router.push('/dashboard').",
+    "10. Update the confirmation screen (shown inside the wizard if submit fully succeeds before redirect fires) to list all registered children with their reference numbers.",
+    "11. In src/components/DepositForm.tsx: change the quick-amount buttons from [25, 50, 100, 250, 500] to [1500, 2000, 2500, 3000, 5000]. Change min attribute on the custom-amount input to 1500. Update the hint text to 'Minimum deposit: $1,500. Annual limit: $5,000 per child.' Import MINIMUM_INITIAL_DEPOSIT_CENTS from '@/lib/program' and use it as the min value (MINIMUM_INITIAL_DEPOSIT_CENTS / 100).",
+    "12. Update src/app/(public)/apply/page.tsx: change the 'Before you begin' aside bullet about 'Custodian bank routing + account numbers' to also mention 'Initial deposit of $1,500.00 per child'. Remove the 'Child's Social Security number (last 4 only here)' bullet — the user wants full SSN capture but the schema still stores last4; keep it as 'Child's Social Security number (last 4 digits)' for now since schema does not have full SSN column."
+  ],
+  "acceptance_criteria": [
+    "Step 0 asks for number of children (1-5) and shows $1,500 per child note",
+    "Steps 3-4 repeat for each child with 'Child N of M' header",
+    "initialDepositDollars field enforces min $1,500 with an inline error if below",
+    "Guardian DOB validates that guardian is 18+ years old",
+    "Child DOB validates that child is under 18",
+    "Child name fields reject non-letter/hyphen/apostrophe characters",
+    "DepositForm quick-amount buttons start at $1,500",
+    "Submitting registers one application per child and redirects to /dashboard",
+    "npm run typecheck passes with 0 errors",
+    "npm run build succeeds"
+  ],
+  "verification": [
+    "npm run typecheck",
+    "npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": "Implemented 7-step multi-child wizard (steps 0–6). Step 0 selects 1–5 children with $1,500/child note. Steps 1–2 are guardian/residence captured once. Steps 3–5 loop per child with childIndex tracking. Step 6 is review with grand total. All strict validation applied. DepositForm quick-amounts updated to [1500,2000,2500,3000,5000] and min enforced via MINIMUM_INITIAL_DEPOSIT_CENTS. apply/page.tsx 'Before you begin' bullets updated. npm run typecheck: 0 errors. npm run build: succeeded."
+}
