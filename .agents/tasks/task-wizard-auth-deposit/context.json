@@ -1,0 +1,30 @@
+{
+  "project_type": "Next.js 15/16 App Router fullstack (TypeScript strict), PostgreSQL + Drizzle ORM, Tailwind v4",
+  "language": "TypeScript",
+  "build_system": "npm + next build; no tailwind.config.js — tokens live in @theme{} block of src/app/globals.css; path alias @/* → ./src/*",
+  "test_framework": "none — verification is: npm run typecheck (tsc --noEmit) then npm run build",
+  "build_command": "npm run build",
+  "test_command": "npm run typecheck",
+  "verification_instructions": "Run `npm run typecheck` (must emit 0 errors), then `npm run build` (must succeed). No automated test suite exists.",
+  "snapshot_or_generated_files": "null",
+  "environment_constraints": "Windows workspace path contains a space: 'child-trust-fund-platform (1)'. Always quote paths. DATABASE_URL and SESSION_SECRET env vars required at runtime but not for typecheck/build.",
+  "contribution_requirements": "Money stored as integer cents. Never floats. No full SSNs or bank passwords stored. Prototype disclaimer in SiteFooter must be kept. All DB-backed pages must use force-dynamic. Route handlers stay thin: parse → call service → shape response.",
+  "key_patterns": "Client components marked 'use client' at top. Server components are the default. Shared UI primitives in src/components/ui.tsx. CSS uses usa-* / gov-* class prefixes defined as plain CSS in globals.css. API success: { ok: true, ...payload } 201 for creation. Validation failure: { ok: false, errors: {fieldName: msg} } 422. Money fields end in Cents. Dollar-facing inputs named amountDollars.",
+  "relevant_files": [
+    "src/components/RegistrationWizard.tsx",
+    "src/components/AuthForm.tsx",
+    "src/components/DepositForm.tsx",
+    "src/components/DashboardChildSwitcher.tsx",
+    "src/app/(public)/dashboard/page.tsx",
+    "src/app/(public)/apply/page.tsx",
+    "src/app/api/applications/route.ts",
+    "src/app/api/applications/[reference]/actions/route.ts",
+    "src/app/api/auth/login/route.ts",
+    "src/lib/program.ts",
+    "src/lib/service.ts",
+    "src/lib/auth.ts",
+    "src/db/schema.ts",
+    "src/app/globals.css"
+  ],
+  "directory_structure": "src/app — Next.js App Router pages and API routes. src/components — client+server React components. src/lib — business logic (program.ts rules, service.ts all DB access, auth.ts crypto helpers, states.ts jurisdictions). src/db — Drizzle schema + pg pool. public/img — static seals."
+}

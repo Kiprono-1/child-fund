@@ -1,0 +1,7 @@
+{
+  "task_id": "task-wizard-auth-deposit",
+  "task_description": "Multi-child registration wizard (7-step), $1,500 minimum deposit per child, strict field validation, streamlined auth form with show/hide password and remember-me, dashboard with child folder cards.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}
