@@ -1,4 +1,4 @@
-import { count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, withRetry } from "@/db";
 import {
   applications,
@@ -1190,5 +1190,204 @@ async function runSeed(): Promise<void> {
 
 export function resetInitialization() {
   initPromise = null;
+}
+
+// ------------------------------------------------------------------ //
+// Admin service functions                                             //
+// ------------------------------------------------------------------ //
+
+export async function adminGetAllApplications(opts: {
+  page?: number;
+  status?: string;
+  search?: string;
+}): Promise<{ rows: ApplicationRow[]; total: number; pages: number }> {
+  await ensureSeedData();
+  const page = Math.max(1, opts.page ?? 1);
+  const pageSize = 20;
+  const offset = (page - 1) * pageSize;
+
+  const conditions = [];
+  if (opts.status) conditions.push(eq(applications.status, opts.status));
+  if (opts.search) {
+    const pattern = `%${opts.search}%`;
+    conditions.push(
+      or(
+        ilike(applications.referenceNumber, pattern),
+        ilike(applications.parentFullName, pattern),
+        ilike(applications.childFirstName, pattern),
+        ilike(applications.childLastName, pattern),
+      ),
+    );
+  }
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const [totalRow] = await db
+    .select({ value: sql<number>`count(*)::int` })
+    .from(applications)
+    .where(where);
+
+  const total = Number(totalRow?.value ?? 0);
+  const rows = await db
+    .select()
+    .from(applications)
+    .where(where)
+    .orderBy(desc(applications.submittedAt))
+    .limit(pageSize)
+    .offset(offset);
+
+  return { rows, total, pages: Math.ceil(total / pageSize) };
+}
+
+export async function adminGetApplicationDetail(
+  reference: string,
+): Promise<ApplicationDetail | null> {
+  await ensureSeedData();
+  const [application] = await db
+    .select()
+    .from(applications)
+    .where(eq(applications.referenceNumber, reference.trim().toUpperCase()))
+    .limit(1);
+  if (!application) return null;
+
+  const [depRows, docRows, eventRows] = await Promise.all([
+    db
+      .select()
+      .from(deposits)
+      .where(eq(deposits.applicationId, application.id))
+      .orderBy(desc(deposits.postedAt), desc(deposits.createdAt)),
+    db
+      .select()
+      .from(documents)
+      .where(eq(documents.applicationId, application.id))
+      .orderBy(desc(documents.uploadedAt)),
+    db
+      .select()
+      .from(statusEvents)
+      .where(eq(statusEvents.applicationId, application.id))
+      .orderBy(statusEvents.createdAt),
+  ]);
+
+  const balanceCents = depRows
+    .filter((d) => d.status === "posted")
+    .reduce((acc, d) => acc + d.amountCents, 0);
+  const scheduledCents = depRows
+    .filter((d) => d.status === "scheduled" || d.status === "processing")
+    .reduce((acc, d) => acc + d.amountCents, 0);
+
+  const projectionAt18Cents = quoteBenefits({
+    dob: application.childDob,
+    stateCode: application.parentState,
+    guardianMonthlyCents: application.monthlyContribution,
+  }).projectionAt18Cents;
+
+  return {
+    application,
+    deposits: depRows,
+    documents: docRows,
+    events: eventRows,
+    state: getState(application.parentState),
+    balanceCents,
+    scheduledCents,
+    projectionAt18Cents,
+  };
+}
+
+export async function adminUpdateApplication(
+  reference: string,
+  fields: Partial<{
+    parentFullName: string;
+    parentEmail: string;
+    parentPhone: string;
+    parentAddressLine1: string;
+    parentAddressLine2: string | null;
+    parentCity: string;
+    parentState: string;
+    parentZip: string;
+    childFirstName: string;
+    childMiddleName: string | null;
+    childLastName: string;
+    childDob: string;
+    verificationStatus: string;
+    participationTier: string;
+  }>,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  await ensureSeedData();
+  const [app] = await db
+    .select({ id: applications.id })
+    .from(applications)
+    .where(eq(applications.referenceNumber, reference.trim().toUpperCase()))
+    .limit(1);
+  if (!app) return { ok: false, error: "Application not found." };
+
+  await db
+    .update(applications)
+    .set({ ...fields, updatedAt: new Date() })
+    .where(eq(applications.id, app.id));
+
+  await db.insert(statusEvents).values({
+    applicationId: app.id,
+    event: "admin_edit",
+    detail: `Admin updated fields: ${Object.keys(fields).join(", ")}.`,
+    actor: "admin",
+  });
+
+  return { ok: true };
+}
+
+export async function adminSetApplicationStatus(
+  reference: string,
+  status: ApplicationStatus,
+  notes: string,
+  actor = "admin",
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  await ensureSeedData();
+  const [app] = await db
+    .select({ id: applications.id })
+    .from(applications)
+    .where(eq(applications.referenceNumber, reference.trim().toUpperCase()))
+    .limit(1);
+  if (!app) return { ok: false, error: "Application not found." };
+
+  await db
+    .update(applications)
+    .set({ status, statusMessage: notes, updatedAt: new Date() })
+    .where(eq(applications.id, app.id));
+
+  await db.insert(statusEvents).values({
+    applicationId: app.id,
+    event: "status_override",
+    detail: notes,
+    actor,
+  });
+
+  return { ok: true };
+}
+
+export async function adminGetAllInquiries(opts?: {
+  handled?: boolean;
+}): Promise<(typeof inquiries.$inferSelect)[]> {
+  await ensureSeedData();
+  const conditions = [];
+  if (opts?.handled !== undefined) {
+    conditions.push(eq(inquiries.handled, opts.handled));
+  }
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+  return db
+    .select()
+    .from(inquiries)
+    .where(where)
+    .orderBy(desc(inquiries.createdAt));
+}
+
+export async function adminMarkInquiryHandled(id: number): Promise<void> {
+  await ensureSeedData();
+  await db.update(inquiries).set({ handled: true }).where(eq(inquiries.id, id));
+}
+
+export async function adminGetNewsletterSignups(): Promise<
+  (typeof newsletterSignups.$inferSelect)[]
+> {
+  await ensureSeedData();
+  return db.select().from(newsletterSignups).orderBy(desc(newsletterSignups.createdAt));
 }
 

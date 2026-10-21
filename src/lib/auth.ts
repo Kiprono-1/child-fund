@@ -102,3 +102,65 @@ export async function getSessionGuardian(): Promise<{ guardianId: number; email:
     return null;
   }
 }
+
+// ------------------------------------------------------------------ //
+// Admin session helpers                                               //
+// ------------------------------------------------------------------ //
+
+export const ADMIN_SESSION_COOKIE = "ctf_admin_session";
+
+type AdminSessionPayload = { admin: true; exp: number };
+
+/**
+ * Creates a signed admin session token. Uses the same HMAC-SHA-256 +
+ * base64url pattern as `createSessionToken`. Default max-age is 8 hours.
+ */
+export function createAdminSessionToken(
+  secret: string,
+  maxAgeSeconds = 60 * 60 * 8,
+): string {
+  const full: AdminSessionPayload = { admin: true, exp: Date.now() + maxAgeSeconds * 1000 };
+  const data = Buffer.from(JSON.stringify(full)).toString("base64url");
+  const sig = createHmac("sha256", secret).update(data).digest("base64url");
+  return `${data}.${sig}`;
+}
+
+/**
+ * Verifies an admin session token's signature and expiry.
+ * Returns the payload on success, `null` on any failure.
+ */
+export function readAdminSessionToken(
+  token: string,
+  secret: string,
+): AdminSessionPayload | null {
+  const [data, sig] = token.split(".");
+  if (!data || !sig) return null;
+  const expected = createHmac("sha256", secret).update(data).digest("base64url");
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf8")) as AdminSessionPayload;
+    if (typeof payload.exp !== "number" || payload.admin !== true) return null;
+    if (payload.exp < Date.now()) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Returns `true` if the request carries a valid, unexpired admin session cookie.
+ * Swallows all errors so missing-secret degrades to "not authenticated".
+ */
+export async function getAdminSession(): Promise<boolean> {
+  try {
+    const store = await cookies();
+    const token = store.get(ADMIN_SESSION_COOKIE)?.value;
+    if (!token) return false;
+    const payload = readAdminSessionToken(token, getSecret());
+    return payload !== null;
+  } catch {
+    return false;
+  }
+}

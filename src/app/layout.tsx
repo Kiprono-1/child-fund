@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Public_Sans, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -38,15 +36,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${publicSans.variable} ${sourceSerif.variable}`}>
-      <body className="flex min-h-screen flex-col bg-white text-gov-ink antialiased">
-        <a href="#main-content" className="skip-link">
-          Skip to main content
-        </a>
-        <SiteHeader />
-        <main id="main-content" className="flex-1">
-          {children}
-        </main>
-        <SiteFooter />
+      <body className="bg-white text-gov-ink antialiased">
+        {children}
       </body>
     </html>
   );
