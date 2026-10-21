@@ -15,8 +15,9 @@ export default async function AdminInquiriesPage({
 
   const sp = await searchParams;
   const handledParam = sp.handled;
-  const handled =
-    handledParam === "true" ? true : handledParam === "false" ? false : false;
+  // undefined → all rows; "true" → handled only; "false" → unhandled only
+  const handled: boolean | undefined =
+    handledParam === "true" ? true : handledParam === "false" ? false : undefined;
 
   const rawRows = await adminGetAllInquiries({ handled });
 
@@ -35,13 +36,19 @@ export default async function AdminInquiriesPage({
       <div className="mt-4 flex gap-2">
         <Link
           href="/admin/inquiries"
-          className={`rounded px-3 py-1.5 text-sm font-medium ${!sp.handled || sp.handled === "false" ? "bg-gov-primary text-white" : "bg-white text-gov-primary border border-gov-primary"}`}
+          className={`rounded px-3 py-1.5 text-sm font-medium ${!sp.handled ? "bg-gov-primary text-white" : "border border-gov-primary bg-white text-gov-primary"}`}
+        >
+          All
+        </Link>
+        <Link
+          href="/admin/inquiries?handled=false"
+          className={`rounded px-3 py-1.5 text-sm font-medium ${sp.handled === "false" ? "bg-gov-primary text-white" : "border border-gov-primary bg-white text-gov-primary"}`}
         >
           Unhandled
         </Link>
         <Link
           href="/admin/inquiries?handled=true"
-          className={`rounded px-3 py-1.5 text-sm font-medium ${sp.handled === "true" ? "bg-gov-primary text-white" : "bg-white text-gov-primary border border-gov-primary"}`}
+          className={`rounded px-3 py-1.5 text-sm font-medium ${sp.handled === "true" ? "bg-gov-primary text-white" : "border border-gov-primary bg-white text-gov-primary"}`}
         >
           Handled
         </Link>

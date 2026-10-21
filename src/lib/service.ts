@@ -1379,9 +1379,18 @@ export async function adminGetAllInquiries(opts?: {
     .orderBy(desc(inquiries.createdAt));
 }
 
-export async function adminMarkInquiryHandled(id: number): Promise<void> {
+export async function adminMarkInquiryHandled(
+  id: number,
+): Promise<{ ok: true } | { ok: false; error: string }> {
   await ensureSeedData();
-  await db.update(inquiries).set({ handled: true }).where(eq(inquiries.id, id));
+  const result = await db
+    .update(inquiries)
+    .set({ handled: true })
+    .where(eq(inquiries.id, id));
+  if ((result.rowCount ?? 0) === 0) {
+    return { ok: false, error: "Not found." };
+  }
+  return { ok: true };
 }
 
 export async function adminGetNewsletterSignups(): Promise<
@@ -1391,3 +1400,34 @@ export async function adminGetNewsletterSignups(): Promise<
   return db.select().from(newsletterSignups).orderBy(desc(newsletterSignups.createdAt));
 }
 
+export type AdminStats = {
+  totalApplications: number;
+  pendingReview: number;
+  fundedAccounts: number;
+  totalPostedCents: number;
+};
+
+export async function adminGetStats(): Promise<AdminStats> {
+  await ensureSeedData();
+
+  const [row] = await db
+    .select({
+      totalApplications: sql<number>`count(*)::int`,
+      pendingReview: sql<number>`sum(case when ${applications.status} in ('submitted','under_review','verification_required') then 1 else 0 end)::int`,
+      fundedAccounts: sql<number>`sum(case when ${applications.status} = 'funded' then 1 else 0 end)::int`,
+    })
+    .from(applications);
+
+  const [moneyRow] = await db
+    .select({
+      totalPostedCents: sql<number>`coalesce(sum(case when ${deposits.status} = 'posted' then ${deposits.amountCents} else 0 end),0)::bigint`,
+    })
+    .from(deposits);
+
+  return {
+    totalApplications: Number(row?.totalApplications ?? 0),
+    pendingReview: Number(row?.pendingReview ?? 0),
+    fundedAccounts: Number(row?.fundedAccounts ?? 0),
+    totalPostedCents: Number(moneyRow?.totalPostedCents ?? 0),
+  };
+}

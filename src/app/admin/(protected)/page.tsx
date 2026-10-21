@@ -1,11 +1,8 @@
 import { requireAdminSession } from "@/app/admin/_adminAuth";
-import { getProgramStats, getRecentApplications, adminGetAllApplications } from "@/lib/service";
+import { adminGetStats, adminGetAllApplications } from "@/lib/service";
 import { StatTile, StatusBadge } from "@/components/ui";
 import { formatUSD } from "@/lib/program";
 import Link from "next/link";
-import { db } from "@/db";
-import { applications } from "@/db/schema";
-import { sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin Dashboard" };
@@ -13,18 +10,11 @@ export const metadata = { title: "Admin Dashboard" };
 export default async function AdminDashboardPage() {
   await requireAdminSession();
 
-  const [stats, recent] = await Promise.all([
-    getProgramStats(),
-    getRecentApplications(10),
+  const [stats, recentResult] = await Promise.all([
+    adminGetStats(),
+    adminGetAllApplications({ page: 1 }),
   ]);
-
-  const [pendingRow] = await db
-    .select({
-      pendingReview: sql<number>`sum(case when ${applications.status} in ('submitted','under_review','verification_required') then 1 else 0 end)::int`,
-    })
-    .from(applications);
-
-  const pendingReview = Number(pendingRow?.pendingReview ?? 0);
+  const recent = recentResult.rows.slice(0, 10);
 
   return (
     <div className="p-6">
@@ -39,7 +29,7 @@ export default async function AdminDashboardPage() {
           tone="navy"
         />
         <StatTile
-          value={pendingReview.toLocaleString()}
+          value={stats.pendingReview.toLocaleString()}
           label="Pending Review"
           tone="gold"
         />
@@ -92,7 +82,7 @@ export default async function AdminDashboardPage() {
                   <td>
                     {row.childFirstName} {row.childLastName}
                   </td>
-                  <td>{row.parentState}</td>
+                  <td>{row.parentFullName}</td>
                   <td>{row.parentState}</td>
                   <td>
                     <StatusBadge status={row.status} />

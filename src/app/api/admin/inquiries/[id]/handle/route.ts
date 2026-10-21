@@ -18,7 +18,10 @@ export async function POST(_req: Request, ctx: Ctx) {
   }
 
   try {
-    await adminMarkInquiryHandled(numId);
+    const result = await adminMarkInquiryHandled(numId);
+    if (!result.ok) {
+      return Response.json({ ok: false, error: result.error }, { status: 404 });
+    }
     return Response.json({ ok: true });
   } catch (err) {
     console.error("Admin mark inquiry error:", err);
