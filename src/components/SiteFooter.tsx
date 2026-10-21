@@ -234,13 +234,6 @@ export default function SiteFooter() {
             </div>
           </div>
 
-          <p className="mt-6 rounded border border-gov-accent/40 bg-gov-accent/10 p-3 text-[0.7rem] leading-relaxed text-gov-primary-lighter">
-            <strong className="text-gov-accent">Demonstration prototype.</strong> This site was
-            built as an academic state-government project to model the design and workflow of a
-            public Child Trust Fund program. It is not an operating federal service: no real money
-            is transferred, no real identity checks are performed, and no data submitted here is
-            shared with any U.S. government agency.
-          </p>
         </div>
       </div>
     </footer>
