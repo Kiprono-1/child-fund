@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+type ContactInfo = { contactPhone: string; contactEmail: string; helplineHours: string };
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -56,6 +58,20 @@ export default function SiteFooter() {
   const [state, setState] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [contact, setContact] = useState<ContactInfo>({
+    contactPhone: "1-800-555-0199",
+    contactEmail: "support@childtrustfund.gov",
+    helplineHours: "Monday–Friday, 8:00 a.m. – 8:00 p.m. Eastern",
+  });
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d: { ok: boolean; settings?: ContactInfo } | null) => {
+        if (d?.ok && d.settings) setContact(d.settings);
+      })
+      .catch(() => {});
+  }, []);
 
   async function subscribe(e: React.FormEvent) {
     e.preventDefault();
@@ -167,12 +183,15 @@ export default function SiteFooter() {
             <div className="mt-6 space-y-1 text-sm">
               <p className="font-bold text-white">CTF Guardian Help Line</p>
               <p>
-                <a href="tel:18445554823" className="text-gov-accent hover:underline">
-                  1-844-555-4CTF (1-844-555-4823)
+                <a href={`tel:${contact.contactPhone.replace(/\D/g, "")}`} className="text-gov-accent hover:underline">
+                  {contact.contactPhone}
                 </a>
               </p>
-              <p className="text-xs text-gov-primary-light">
-                Monday–Friday, 8:00 a.m. – 8:00 p.m. Eastern · TTY: dial 711 · Se habla español
+              <p className="text-xs text-gov-primary-light">{contact.helplineHours} · TTY: dial 711 · Se habla español</p>
+              <p>
+                <a href={`mailto:${contact.contactEmail}`} className="text-gov-accent hover:underline text-xs">
+                  {contact.contactEmail}
+                </a>
               </p>
             </div>
           </div>

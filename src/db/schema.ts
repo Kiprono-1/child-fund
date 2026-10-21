@@ -164,3 +164,14 @@ export const guardianAccounts = pgTable("guardian_accounts", {
 });
 
 
+
+/**
+ * Key-value store for admin-editable site settings.
+ * Each row is one setting identified by a unique key string.
+ * Currently used for: contact_phone, contact_email, helpline_hours.
+ */
+export const siteSettings = pgTable("site_settings", {
+  key: varchar("key", { length: 64 }).primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

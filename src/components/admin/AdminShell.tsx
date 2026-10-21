@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: "/admin/applications", label: "Applications", exact: false },
   { href: "/admin/inquiries", label: "Inquiries", exact: false },
   { href: "/admin/newsletter", label: "Newsletter", exact: false },
+  { href: "/admin/settings", label: "Site Settings", exact: false },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {

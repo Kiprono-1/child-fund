@@ -7,6 +7,7 @@ import {
   guardianAccounts,
   inquiries,
   newsletterSignups,
+  siteSettings,
   statusEvents,
   type ApplicationStatus,
   type DepositType,
@@ -995,6 +996,21 @@ async function ensureSchema() {
     alter table applications add column if not exists guardian_account_id integer
       references guardian_accounts(id) on delete set null
   `);
+  await db.execute(sql`
+    create table if not exists site_settings (
+      key varchar(64) primary key,
+      value text not null,
+      updated_at timestamptz not null default now()
+    )
+  `);
+  // Seed default contact settings if not present
+  await db.execute(sql`
+    insert into site_settings (key, value) values
+      ('contact_phone', '1-800-555-0199'),
+      ('contact_email', 'support@childtrustfund.gov'),
+      ('helpline_hours', 'Monday–Friday, 8:00 a.m. – 8:00 p.m. Eastern')
+    on conflict (key) do nothing
+  `);
 }
 
 let initPromise: Promise<void> | null = null;
@@ -1630,4 +1646,51 @@ export async function adminGetApplicationBalances(
     )
     .groupBy(deposits.applicationId);
   return new Map(rows.map((r) => [r.applicationId, Number(r.totalCents)]));
+}
+
+// ------------------------------------------------------------------ //
+// Site settings                                                       //
+// ------------------------------------------------------------------ //
+
+export type SiteContactInfo = {
+  contactPhone: string;
+  contactEmail: string;
+  helplineHours: string;
+};
+
+export async function getSiteContactInfo(): Promise<SiteContactInfo> {
+  await ensureSeedData();
+  const rows = await db
+    .select()
+    .from(siteSettings)
+    .where(
+      sql`${siteSettings.key} in ('contact_phone','contact_email','helpline_hours')`
+    );
+  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  return {
+    contactPhone: map["contact_phone"] ?? "1-800-555-0199",
+    contactEmail: map["contact_email"] ?? "support@childtrustfund.gov",
+    helplineHours: map["helpline_hours"] ?? "Monday–Friday, 8:00 a.m. – 8:00 p.m. Eastern",
+  };
+}
+
+export async function adminUpdateSiteSettings(
+  updates: Partial<SiteContactInfo>,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const pairs: [string, string][] = [];
+    if (updates.contactPhone !== undefined) pairs.push(["contact_phone", updates.contactPhone]);
+    if (updates.contactEmail !== undefined) pairs.push(["contact_email", updates.contactEmail]);
+    if (updates.helplineHours !== undefined) pairs.push(["helpline_hours", updates.helplineHours]);
+    for (const [key, value] of pairs) {
+      await db
+        .insert(siteSettings)
+        .values({ key, value })
+        .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("adminUpdateSiteSettings failed:", err);
+    return { ok: false, error: "Failed to save settings." };
+  }
 }

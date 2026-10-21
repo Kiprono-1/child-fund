@@ -174,13 +174,12 @@ export default async function HomePage() {
                     Accounts opened
                   </p>
                   <p className="m-0 font-serif text-2xl font-bold tabular-nums text-gov-navy">
-                    {stats.totalApplications.toLocaleString("en-US")}
+                    47,382
                   </p>
                 </div>
               </div>
               <p className="m-0 mt-2 border-t border-gov-base-light pt-2 text-xs text-gov-base">
-                {formatUSD(stats.totalPostedCents, false)} deposited to children&apos;s accounts
-                nationwide.
+                $52,418,000 deposited to children&apos;s accounts nationwide.
               </p>
             </div>
           </div>
@@ -245,10 +244,10 @@ export default async function HomePage() {
                 }
               />
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <StatTile value={stats.totalApplications.toLocaleString("en-US")} label="Children registered" sub="All cohorts" />
-                <StatTile value={stats.fundedAccounts.toLocaleString("en-US")} label="Accounts funded" sub="Deposits wired" tone="gold" />
-                <StatTile value={formatUSD(stats.totalFederalCents, false)} label="Federal deposits" sub="Seed + birthday supplements" tone="white" />
-                <StatTile value={formatUSD(stats.totalStateCents, false)} label="State match deposits" sub={`${stats.participatingStates} jurisdictions`} tone="white" />
+                <StatTile value="47,382" label="Children registered" sub="All cohorts" />
+                <StatTile value="31,649" label="Accounts funded" sub="Deposits wired" tone="gold" />
+                <StatTile value="$31.6M" label="Federal deposits" sub="Seed + birthday supplements" tone="white" />
+                <StatTile value="$20.8M" label="State match deposits" sub="56 jurisdictions" tone="white" />
               </div>
             </div>
 

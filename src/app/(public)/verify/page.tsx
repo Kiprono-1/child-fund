@@ -9,7 +9,7 @@ import { getApplicationsByGuardianId } from "@/lib/service";
 export const metadata: Metadata = {
   title: "Verify Your Identity",
   description:
-    "Complete identity verification for your Child Trust Fund application using Login.gov, ID.me, secure document upload, or an in-person visit to a state treasury office.",
+    "Complete identity verification for your Child Trust Fund application by uploading documents or visiting a state treasury office in person.",
 };
 
 export const dynamic = "force-dynamic";
@@ -91,8 +91,8 @@ export default async function VerifyPage() {
         lede={
           <>
             Federal law (31 C.F.R. § 210) requires the Child Trust Fund Administration to verify the
-            identity of every adult who opens a custodial account for a minor. Pick the method that
-            suits you — all four are free.
+            identity of every adult who opens a custodial account for a minor. Choose document
+            upload or visit a participating state treasury office in person — both are free.
           </>
         }
         actions={
@@ -109,9 +109,11 @@ export default async function VerifyPage() {
 
       <section className="py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <SectionHeading kicker="Four ways to verify" title="Choose your verification method" />
+          <SectionHeading kicker="Two ways to verify" title="Choose your verification method" />
           <div className="mt-8 grid gap-5 lg:grid-cols-2">
-            {VERIFICATION_METHODS.map((m) => {
+            {VERIFICATION_METHODS.filter((m) =>
+              m.id === "document_upload" || m.id === "in_person"
+            ).map((m) => {
               const d = METHOD_DETAIL[m.id];
               return (
                 <article key={m.id} className="usa-card flex h-full flex-col p-5 sm:p-6">
