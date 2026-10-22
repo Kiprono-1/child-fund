@@ -98,7 +98,7 @@ export type BenefitQuote = {
 /**
  * Full funding quote for a child, used on the registration wizard and on the
  * account dashboard. Assumes a conservative 4.5% nominal annual return for the
- * CTF Growth Portfolio.
+ * TA Growth Portfolio.
  */
 export function quoteBenefits(opts: {
   dob?: string | null;
@@ -231,19 +231,19 @@ export const VERIFICATION_METHODS = [
 export const ACCOUNT_TYPES = [
   {
     id: "ctf_savings",
-    label: "CTF Savings Account",
+    label: "TA Savings Account",
     detail:
       "FDIC-insured deposit account held by an approved custodian bank. Principal protected, 3.90% APY program rate.",
   },
   {
     id: "ctf_growth",
-    label: "CTF Growth Portfolio",
+    label: "TA Growth Portfolio",
     detail:
       "Age-based diversified index portfolio managed by the Federal Fund Board. Higher long-term return, market risk applies.",
   },
   {
     id: "ctf_treasury",
-    label: "CTF Treasury Ladder",
+    label: "TA Treasury Ladder",
     detail:
       "Rolling Series I and 5-year Treasury holdings. Backed by the full faith and credit of the United States.",
   },

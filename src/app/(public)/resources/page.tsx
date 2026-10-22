@@ -6,13 +6,13 @@ import { Callout, Icon, PageHero, SectionHeading } from "@/components/ui";
 export const metadata: Metadata = {
   title: "Resources & Financial Education",
   description:
-    "Free guides, classroom materials, a compound growth calculator, forms and a plain-language glossary for the U.S. Child Trust Fund.",
+    "Free guides, classroom materials, a compound growth calculator, forms and a plain-language glossary for the U.S. Trump Account.",
 };
 
 const GUIDES = [
   {
     cat: "For new parents",
-    title: "Your first 30 days with a Child Trust Fund account",
+    title: "Your first 30 days with a Trump Account account",
     body: "What to expect after the hospital, how registration works with a birth certificate, and how to set up a recurring $25 deposit that compounds for 18 years.",
     read: "8 min read",
     href: "/how-it-works",
@@ -55,13 +55,13 @@ const GUIDES = [
 ];
 
 const FORMS = [
-  ["CTF-1", "Child Trust Fund application", "Filed online in six steps. Paper copies available by mail.", "/apply"],
-  ["CTF-2", "Document upload cover sheet", "Use when mailing verification documents instead of uploading.", "/verify"],
-  ["CTF-4", "Change of custodian", "Custody transfers, adoption finalizations, death of a custodian.", "/contact"],
-  ["CTF-7", "Address or bank change", "Report a move or new custodian account within 30 days.", "/contact"],
-  ["CTF-9", "Request for reconsideration", "Appeal a decision within 60 days with new evidence.", "/contact"],
-  ["CTF-12", "Hardship withdrawal request", "Medical, eviction prevention or funeral expenses only.", "/contact"],
-  ["Pub. 5900", "Child Trust Fund guardian handbook", "Complete plain-language guide to the program.", "/about"],
+  ["TA-1", "Trump Account application", "Filed online in six steps. Paper copies available by mail.", "/apply"],
+  ["TA-2", "Document upload cover sheet", "Use when mailing verification documents instead of uploading.", "/verify"],
+  ["TA-4", "Change of custodian", "Custody transfers, adoption finalizations, death of a custodian.", "/contact"],
+  ["TA-7", "Address or bank change", "Report a move or new custodian account within 30 days.", "/contact"],
+  ["TA-9", "Request for reconsideration", "Appeal a decision within 60 days with new evidence.", "/contact"],
+  ["TA-12", "Hardship withdrawal request", "Medical, eviction prevention or funeral expenses only.", "/contact"],
+  ["Pub. 5900", "Trump Account guardian handbook", "Complete plain-language guide to the program.", "/about"],
   ["Sch. 2026-SM", "State match schedule, program year 2026", "All 56 jurisdictions, rates and caps.", "/states"],
 ];
 
@@ -73,7 +73,7 @@ const GLOSSARY = [
   ["Program year", "The federal fiscal year, October 1 through September 30, used for the $5,000 contribution limit."],
   ["Certified custodian", "An FDIC or NCUA insured institution approved by the Federal Fund Board to hold child trust accounts, prohibited from charging fees."],
   ["Identity proofing", "The federal process that confirms the adult opening the account is who they say they are."],
-  ["Reference number", "Your CTF-YYYY-XXXXXX case identifier. Needed to track the application and to make deposits."],
+  ["Reference number", "Your TA-YYYY-XXXXXX case identifier. Needed to track the application and to make deposits."],
 ];
 
 export default function ResourcesPage() {
@@ -105,7 +105,7 @@ export default function ResourcesPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeading
             kicker="Interactive tool"
-            title="Child Trust Fund growth calculator"
+            title="Trump Account growth calculator"
             lede="Model any child's account. Compare it against the same contributions held in an ordinary savings account with no federal or state money."
           />
           <div className="usa-card mt-8 p-5 sm:p-7">
@@ -177,7 +177,7 @@ export default function ResourcesPage() {
           <p className="mt-4 text-sm text-gov-base">
             Need a paper copy mailed to you? Call{" "}
             <a href="tel:18445554823" className="font-semibold text-gov-primary hover:underline">
-              1-844-555-4CTF
+              1-844-555-4TA
             </a>{" "}
             or select &ldquo;Forms request&rdquo; on the{" "}
             <Link href="/contact" className="font-semibold text-gov-primary hover:underline">
@@ -222,7 +222,7 @@ export default function ResourcesPage() {
                     <Icon name="book" className="h-7 w-7" />
                   </span>
                   <h2 className="mt-3 mb-1 font-serif text-xl font-bold text-gov-navy">
-                    Bring the Child Trust Fund into your classroom
+                    Bring the Trump Account into your classroom
                   </h2>
                   <p className="m-0 text-sm leading-relaxed text-[#3d4551]">
                     A free four-lesson unit for grades 4–12 covers saving, compound growth, how a

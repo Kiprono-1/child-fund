@@ -8,7 +8,7 @@ import { STATES } from "@/lib/states";
 export const metadata: Metadata = {
   title: "State Participation & Match Rates",
   description:
-    "Child Trust Fund opening match rates, contribution match percentages and annual caps for all 50 states, the District of Columbia and five U.S. territories.",
+    "Trump Account opening match rates, contribution match percentages and annual caps for all 50 states, the District of Columbia and five U.S. territories.",
 };
 
 export default function StatesPage() {
@@ -28,7 +28,7 @@ export default function StatesPage() {
         lede={
           <>
             Every state, the District of Columbia and five permanently inhabited territories
-            co-administer the Child Trust Fund and add their own money on top of the federal deposit.
+            co-administer the Trump Account and add their own money on top of the federal deposit.
             Rates below are the published figures for the current program year.
           </>
         }

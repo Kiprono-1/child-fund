@@ -56,13 +56,13 @@ export function newReference(d = new Date()): string {
   for (let i = 0; i < 6; i += 1) {
     tail += REF_ALPHABET[Math.floor(Math.random() * REF_ALPHABET.length)];
   }
-  return `CTF-${d.getFullYear()}-${tail}`;
+  return `TA-${d.getFullYear()}-${tail}`;
 }
 
 function newAccountNumber(): string {
   let n = "";
   for (let i = 0; i < 10; i += 1) n += Math.floor(Math.random() * 10);
-  return `CTF${n.slice(0, 5)}-${n.slice(5)}`;
+  return `TA${n.slice(0, 5)}-${n.slice(5)}`;
 }
 
 export function validateApplication(input: Partial<NewApplicationInput>): {
@@ -455,7 +455,7 @@ export async function advanceApplication(reference: string) {
       depositType: "federal_seed",
       amountCents: application.federalSeedAmount,
       status: "posted",
-      description: "Federal Child Trust Fund seed deposit",
+      description: "Federal Trump Account seed deposit",
       source: "U.S. Department of the Treasury",
       postedAt: now,
       scheduledFor: now,
@@ -467,7 +467,7 @@ export async function advanceApplication(reference: string) {
       depositType: "state_match",
       amountCents: application.stateMatchAmount,
       status: "posted",
-      description: `${state?.name ?? "State"} Child Trust Fund opening match`,
+      description: `${state?.name ?? "State"} Trump Account opening match`,
       source: state?.agency ?? "State Treasury Office",
       postedAt: new Date(now.getTime() + 3 * 864e5),
       scheduledFor: new Date(now.getTime() + 3 * 864e5),
@@ -1038,7 +1038,7 @@ async function ensureSchema() {
   await db.execute(sql`
     insert into site_settings (key, value) values
       ('contact_phone', '1-800-555-0199'),
-      ('contact_email', 'support@childtrustfund.gov'),
+      ('contact_email', 'support@trump.account.gov'),
       ('helpline_hours', 'Monday–Friday, 8:00 a.m. – 8:00 p.m. Eastern')
     on conflict (key) do nothing
   `);
@@ -1055,7 +1055,7 @@ function ensureSeedData(): Promise<void> {
   if (!initPromise) {
     initPromise = runSeed().catch((err) => {
       initPromise = null;
-      console.error("CTF register initialization failed:", err);
+      console.error("TA register initialization failed:", err);
     });
   }
   return initPromise;
@@ -1192,7 +1192,7 @@ async function runSeed(): Promise<void> {
           depositType: "federal_seed",
           amountCents: meta.federalSeedAmount,
           status: "posted",
-          description: "Federal Child Trust Fund seed deposit",
+          description: "Federal Trump Account seed deposit",
           source: "U.S. Department of the Treasury",
           postedAt: posted,
           scheduledFor: posted,
@@ -1204,7 +1204,7 @@ async function runSeed(): Promise<void> {
           depositType: "state_match",
           amountCents: meta.stateMatchAmount,
           status: "posted",
-          description: `${st.name} Child Trust Fund opening match`,
+          description: `${st.name} Trump Account opening match`,
           source: st.agency,
           postedAt: new Date(posted.getTime() + 3 * 864e5),
           scheduledFor: new Date(posted.getTime() + 3 * 864e5),
@@ -1700,7 +1700,7 @@ export async function getSiteContactInfo(): Promise<SiteContactInfo> {
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   return {
     contactPhone: map["contact_phone"] ?? "1-800-555-0199",
-    contactEmail: map["contact_email"] ?? "support@childtrustfund.gov",
+    contactEmail: map["contact_email"] ?? "support@trump.account.gov",
     helplineHours: map["helpline_hours"] ?? "Monday–Friday, 8:00 a.m. – 8:00 p.m. Eastern",
   };
 }

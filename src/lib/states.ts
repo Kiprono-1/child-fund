@@ -1,7 +1,7 @@
 export type StateInfo = {
   code: string;
   name: string;
-  /** State treasury office that co-administers the Child Trust Fund. */
+  /** State treasury office that co-administers the Trump Account. */
   agency: string;
   /** State match credited on top of the federal seed deposit (USD cents). */
   stateMatchCents: number;

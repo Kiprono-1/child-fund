@@ -72,7 +72,7 @@ export default function AdminSettingsForm({ initial }: { initial: SiteContactInf
           className="usa-input"
           value={fields.contactEmail}
           onChange={(e) => setFields((f) => ({ ...f, contactEmail: e.target.value }))}
-          placeholder="e.g. support@childtrustfund.gov"
+          placeholder="e.g. support@trump.account.gov"
           required
         />
       </div>

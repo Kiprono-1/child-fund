@@ -13,7 +13,7 @@ export async function GET(req: Request, ctx: Ctx) {
     const detail = await getApplicationDetail(reference, lastName);
     if (detail === null) {
       return Response.json(
-        { ok: false, error: `No Child Trust Fund application found for ${reference.toUpperCase()}.` },
+        { ok: false, error: `No Trump Account application found for ${reference.toUpperCase()}.` },
         { status: 404 },
       );
     }

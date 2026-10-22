@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
  * crypto. All DB access stays in `src/lib/service.ts`.
  */
 
-export const SESSION_COOKIE = "ctf_session";
+export const SESSION_COOKIE = "ta_session";
 const SCRYPT_KEYLEN = 64;
 
 /** Reads the cookie-signing secret. Throws at runtime if it is missing. */
@@ -107,7 +107,7 @@ export async function getSessionGuardian(): Promise<{ guardianId: number; email:
 // Admin session helpers                                               //
 // ------------------------------------------------------------------ //
 
-export const ADMIN_SESSION_COOKIE = "ctf_admin_session";
+export const ADMIN_SESSION_COOKIE = "ta_admin_session";
 
 type AdminSessionPayload = { admin: true; exp: number };
 

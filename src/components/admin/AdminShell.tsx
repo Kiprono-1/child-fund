@@ -43,9 +43,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       >
         <div className="border-b border-white/20 px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-gov-accent">
-            CTF Admin
+            TA Admin
           </p>
-          <p className="mt-0.5 text-xs text-white/60">ChildTrustFund.gov</p>
+          <p className="mt-0.5 text-xs text-white/60">Trump.Account.gov</p>
         </div>
 
         <nav className="flex-1 px-3 py-4">
@@ -97,7 +97,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             <span aria-hidden="true" className="block h-0.5 w-6 bg-white" />
           </button>
           <span className="text-sm font-semibold uppercase tracking-widest text-gov-accent">
-            CTF Admin
+            TA Admin
           </span>
         </div>
 

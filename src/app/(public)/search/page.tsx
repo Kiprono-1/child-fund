@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Search",
-  description: "Search ChildTrustFund.gov — program pages, frequently asked questions and state match information.",
+  description: "Search Trump.Account.gov — program pages, frequently asked questions and state match information.",
 };
 
 type Entry = {
@@ -21,11 +21,11 @@ type Entry = {
 };
 
 const PAGES: Entry[] = [
-  { title: "Register a Child", url: "/apply", type: "Service", body: "File the six-step Child Trust Fund application: guardian details, state of residence, child birth details, trust account, identity verification and certification.", keywords: "apply register application form ctf-1 sign up enroll newborn baby open account" },
+  { title: "Register a Child", url: "/apply", type: "Service", body: "File the six-step Trump Account application: guardian details, state of residence, child birth details, trust account, identity verification and certification.", keywords: "apply register application form ctf-1 sign up enroll newborn baby open account" },
   { title: "Track Your Application", url: "/status", type: "Service", body: "Look up a case with your reference number, follow the review pipeline, upload verification documents and review the deposit ledger.", keywords: "track status case lookup reference number pipeline progress check where is my application" },
   { title: "Verify Your Identity", url: "/verify", type: "Service", body: "Login.gov, ID.me, secure document upload or an in-person visit to a state treasury office. Documents accepted and typical timing.", keywords: "verify identity proofing login.gov id.me documents photo id birth certificate office" },
   { title: "Make a Deposit", url: "/deposit", type: "Service", body: "One-time or monthly guardian contributions to a child account, with a state match on every deposit up to $5,000 per year.", keywords: "deposit contribute money add funds gift grandparent recurring monthly ach" },
-  { title: "About the Program", url: "/about", type: "About", body: "Mission, statutory authority under the Child Trust Fund Act of 2024, governance, the Federal Fund Board and program history.", keywords: "about mission statute governance board history treasury authority 31 usc 5141" },
+  { title: "About the Program", url: "/about", type: "About", body: "Mission, statutory authority under the Trump Account Act of 2024, governance, the Federal Fund Board and program history.", keywords: "about mission statute governance board history treasury authority 31 usc 5141" },
   { title: "How It Works", url: "/how-it-works", type: "About", body: "Registration, verification, account opening, the deposit schedule, growth to age 18 and hardship withdrawal rules.", keywords: "how it works process steps timeline deposit schedule growth age 18 hardship" },
   { title: "Eligibility & Benefits", url: "/eligibility", type: "About", body: "Who qualifies, benefit amounts for each cohort, common blockers, special situations and the eligibility FAQ.", keywords: "eligibility qualify benefits cohort automatic 2025 2026 2027 2028 income limit citizen ssn" },
   { title: "State Participation & Match Rates", url: "/states", type: "Data", body: "Opening match, contribution match percentage and annual cap for all 50 states, the District of Columbia and five territories.", keywords: "state match rates table ohio texas california new york florida territory dc puerto rico" },
@@ -33,7 +33,7 @@ const PAGES: Entry[] = [
   { title: "Resources & Financial Education", url: "/resources", type: "Education", body: "Guides, classroom lesson plans, the growth calculator, official forms and a plain-language glossary.", keywords: "resources guides education calculator forms glossary classroom teachers kids teens" },
   { title: "Frequently Asked Questions", url: "/faq", type: "Help", body: "Thirty plain-language answers covering eligibility, registration, verification, deposits, using the account and fraud prevention.", keywords: "faq questions answers help support" },
   { title: "Contact Us", url: "/contact", type: "Help", body: "Guardian Help Line, written contact form, mailing address, Office of Inspector General and state treasury offices.", keywords: "contact phone help line email address office fraud report accessibility" },
-  { title: "My Dashboard", url: "/dashboard", type: "Account", body: "View your child's Child Trust Fund balance, deposit history, case status and quick actions. Sign in required.", keywords: "dashboard my account balance deposits status guardian logged in" },
+  { title: "My Dashboard", url: "/dashboard", type: "Account", body: "View your child's Trump Account balance, deposit history, case status and quick actions. Sign in required.", keywords: "dashboard my account balance deposits status guardian logged in" },
 ];
 
 export default async function SearchPage({
@@ -55,7 +55,7 @@ export default async function SearchPage({
       keywords: `${f.category} ${f.tag ?? ""}`.toLowerCase(),
     })),
     ...STATES.map((s) => ({
-      title: `${s.name} — Child Trust Fund in ${s.name}`,
+      title: `${s.name} — Trump Account in ${s.name}`,
       url: "/states",
       type: "State",
       body: `${s.agency} co-administers the program in ${s.name}. Opening match ${formatUSD(
@@ -100,7 +100,7 @@ export default async function SearchPage({
       <PageHero
         trail={[{ label: "Home", href: "/" }, { label: "Search" }]}
         eyebrow="Site search"
-        title={query ? `Results for “${query}”` : "Search ChildTrustFund.gov"}
+        title={query ? `Results for “${query}”` : "Search Trump.Account.gov"}
         lede={
           query ? (
             <p className="m-0">
@@ -167,7 +167,7 @@ export default async function SearchPage({
               <Callout tone="info" title="Ask a person instead">
                 The Guardian Help Line answers questions the website does not cover:{" "}
                 <a href="tel:18445554823" className="font-semibold underline">
-                  1-844-555-4CTF
+                  1-844-555-4TA
                 </a>
                 , Monday&ndash;Friday 8 a.m. &ndash; 8 p.m. ET.
               </Callout>
@@ -187,7 +187,7 @@ export default async function SearchPage({
                     </Link>
                   </h2>
                   <p className="mt-2 mb-1 text-sm leading-relaxed text-[#3d4551]">{r.body}</p>
-                  <p className="m-0 text-xs text-gov-base">childtrustfund.gov{r.url}</p>
+                  <p className="m-0 text-xs text-gov-base">trump.account.gov{r.url}</p>
                 </li>
               ))}
             </ol>

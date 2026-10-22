@@ -492,7 +492,7 @@ export default function RegistrationWizard() {
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#3d4551]">
               Your {results.length === 1 ? "application was" : "applications were"} received by
-              the Child Trust Fund Administration. Write down your reference{" "}
+              the Trump Account Administration. Write down your reference{" "}
               {results.length === 1 ? "number" : "numbers"} — you will need{" "}
               {results.length === 1 ? "it" : "them"} to track and make deposits.
             </p>
@@ -1486,7 +1486,7 @@ export default function RegistrationWizard() {
                     onChange={(e) => setGuardian("identityConsent", e.target.checked)}
                   />
                   <span>
-                    I authorize the Child Trust Fund Administration and{" "}
+                    I authorize the Trump Account Administration and{" "}
                     {quote.state?.agency ?? "my state treasury office"} to verify my identity, my
                     relationship to the child, and the child&apos;s Social Security record.
                   </span>
@@ -1778,7 +1778,7 @@ function BenefitSidebar({
             href="tel:18445554823"
             className="font-semibold text-gov-primary hover:underline"
           >
-            1-844-555-4CTF
+            1-844-555-4TA
           </a>{" "}
           or visit a{" "}
           <Link href="/contact" className="font-semibold text-gov-primary hover:underline">

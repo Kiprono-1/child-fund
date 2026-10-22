@@ -7,7 +7,7 @@ import { ANNUAL_CONTRIBUTION_LIMIT_CENTS, formatUSD } from "@/lib/program";
 export const metadata: Metadata = {
   title: "Make a Deposit",
   description:
-    "Add money to a child's U.S. Child Trust Fund account. One-time or monthly guardian contributions with a state match on every deposit.",
+    "Add money to a child's U.S. Trump Account account. One-time or monthly guardian contributions with a state match on every deposit.",
 };
 
 export default async function DepositPage({

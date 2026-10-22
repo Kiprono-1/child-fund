@@ -7,7 +7,7 @@ import { getState } from "@/lib/states";
 export const metadata: Metadata = {
   title: "How It Works",
   description:
-    "The complete Child Trust Fund process: registration, identity verification, account opening, the deposit schedule, growth to age 18 and what happens when the child becomes an adult.",
+    "The complete Trump Account process: registration, identity verification, account opening, the deposit schedule, growth to age 18 and what happens when the child becomes an adult.",
 };
 
 const SCHEDULE = [
@@ -57,10 +57,10 @@ export default function HowItWorksPage() {
       <PageHero
         trail={[{ label: "Home", href: "/" }, { label: "How It Works" }]}
         eyebrow="The process · End to end"
-        title="How the Child Trust Fund works"
+        title="How the Trump Account works"
         lede={
           <>
-            From the moment you file Form CTF-1 to the day your child turns eighteen, every step is
+            From the moment you file Form TA-1 to the day your child turns eighteen, every step is
             tracked in the national register and visible to you in the{" "}
             <Link href="/status" className="font-semibold text-gov-primary hover:underline">
               application tracker
@@ -142,9 +142,9 @@ export default function HowItWorksPage() {
                 </span>
                 <h3 className="mt-3 mb-1 font-serif text-lg font-bold text-gov-navy">How the money grows</h3>
                 <p className="m-0 text-sm leading-relaxed text-[#3d4551]">
-                  A CTF Savings Account earns the program rate of 3.90% APY, FDIC-insured. A CTF
+                  A TA Savings Account earns the program rate of 3.90% APY, FDIC-insured. A TA
                   Growth Portfolio is invested in an age-based index allocation managed by the
-                  Federal Fund Board at a capped expense ratio of 0.05%. A CTF Treasury Ladder holds
+                  Federal Fund Board at a capped expense ratio of 0.05%. A TA Treasury Ladder holds
                   Series I bonds and 5-year notes.
                 </p>
                 <Link href="/resources#calculator" className="mt-3 inline-block text-sm font-bold text-gov-primary hover:underline">
@@ -158,7 +158,7 @@ export default function HowItWorksPage() {
               </Callout>
               <Callout tone="info" title="If the guardian changes">
                 Custody transfers, adoption finalizations and the death of a custodian are handled by
-                filing Form CTF-4 with the state treasury office. The account and its balance remain
+                filing Form TA-4 with the state treasury office. The account and its balance remain
                 the child&apos;s property throughout.
               </Callout>
             </div>

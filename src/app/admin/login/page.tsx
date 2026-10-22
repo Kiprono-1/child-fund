@@ -21,7 +21,7 @@ export default async function AdminLoginPage({
       <div className="usa-card w-full max-w-md p-8">
         <div className="mb-6 text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-gov-primary">
-            ChildTrustFund.gov
+            Trump.Account.gov
           </p>
           <h1 className="mt-1 font-serif text-2xl font-bold text-gov-navy">
             Admin Portal

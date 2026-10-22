@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "About the Program",
   description:
-    "The U.S. Child Trust Fund: statutory authority, mission, governance, the Federal Fund Board, and how federal deposits reach every eligible American child.",
+    "The U.S. Trump Account: statutory authority, mission, governance, the Federal Fund Board, and how federal deposits reach every eligible American child.",
 };
 
 const TIMELINE = [
@@ -25,8 +25,8 @@ const TIMELINE = [
   },
   {
     year: "2024",
-    title: "Child Trust Fund Act signed",
-    body: "Congress enacts the Child Trust Fund Act of 2024 (31 U.S.C. § 5141 et seq.), creating a $1,000 federal seed deposit for children born 2025–2028 and a matching grant program for states.",
+    title: "Trump Account Act signed",
+    body: "Congress enacts the Trump Account Act of 2024 (31 U.S.C. § 5141 et seq.), creating a $1,000 federal seed deposit for children born 2025–2028 and a matching grant program for states.",
   },
   {
     year: "2025",
@@ -57,10 +57,10 @@ export default async function AboutPage() {
       <PageHero
         trail={[{ label: "Home", href: "/" }, { label: "About the Program" }]}
         eyebrow="About · Statute and governance"
-        title="The U.S. Child Trust Fund"
+        title="The U.S. Trump Account"
         lede={
           <>
-            The Child Trust Fund is a federal&ndash;state program that opens a custodial savings
+            The Trump Account is a federal&ndash;state program that opens a custodial savings
             account in the name of every eligible American child and deposits public money into it.
             The goal is simple: no child should reach adulthood with zero capital.
           </>
@@ -70,7 +70,7 @@ export default async function AboutPage() {
             <h2 className="m-0 font-serif text-base font-bold text-gov-navy">Program facts</h2>
             <dl className="m-0 mt-3 space-y-2 text-sm">
               {[
-                ["Authority", "Child Trust Fund Act of 2024"],
+                ["Authority", "Trump Account Act of 2024"],
                 ["Codified at", "31 U.S.C. § 5141 et seq."],
                 ["Administered by", "Treasury Fiscal Service"],
                 ["Automatic cohort", "Born 2025–2028"],
@@ -99,7 +99,7 @@ export default async function AboutPage() {
                 paycheck alone rarely produces.
               </p>
               <p className="text-[1.02rem] leading-relaxed text-[#3d4551]">
-                The Child Trust Fund answers that with a deposit made in the child&apos;s name on the
+                The Trump Account answers that with a deposit made in the child&apos;s name on the
                 day the account is opened. For children born between January 1, 2025 and December 31,
                 2028, the United States Treasury deposits $1,000.00 automatically, and the family&apos;s
                 state treasury adds its own match. A further $150.00 federal birthday supplement is
@@ -136,13 +136,13 @@ export default async function AboutPage() {
               <StatTile value={stats.participatingStates.toString()} label="Participating jurisdictions" tone="white" />
               <img
                 src="/img/ctf-seal.png"
-                alt="Seal of the Child Trust Fund Administration"
+                alt="Seal of the Trump Account Administration"
                 width={220}
                 height={220}
                 className="mx-auto mt-4 h-44 w-44 rounded-full object-contain"
               />
               <p className="text-center text-xs text-gov-base">
-                Seal of the Child Trust Fund Administration, an office of the U.S. Department of the
+                Seal of the Trump Account Administration, an office of the U.S. Department of the
                 Treasury.
               </p>
             </div>
@@ -197,7 +197,7 @@ export default async function AboutPage() {
                 <h3 className="m-0 font-serif text-lg font-bold text-gov-navy">Privacy</h3>
                 <p className="mt-2 mb-0 text-sm leading-relaxed text-[#3d4551]">
                   Records are protected by the Privacy Act of 1974 (System of Records Notice
-                  Treasury/CTF.001). Only the custodian, the child after 18, and authorized state and
+                  Treasury/TA.001). Only the custodian, the child after 18, and authorized state and
                   federal staff may view an account.
                 </p>
               </div>
@@ -205,7 +205,7 @@ export default async function AboutPage() {
                 <h3 className="m-0 font-serif text-lg font-bold text-gov-navy">Accessibility</h3>
                 <p className="mt-2 mb-0 text-sm leading-relaxed text-[#3d4551]">
                   This site conforms to Section 508 and WCAG 2.1 AA. Screen-reader users who hit a
-                  barrier should call 1-844-555-4CTF and ask for the accessibility coordinator.
+                  barrier should call 1-844-555-4TA and ask for the accessibility coordinator.
                 </p>
               </div>
             </div>

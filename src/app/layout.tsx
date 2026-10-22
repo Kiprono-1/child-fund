@@ -17,14 +17,14 @@ const sourceSerif = Source_Serif_4({
 
 export const metadata: Metadata = {
   title: {
-    default: "ChildTrustFund.gov — U.S. Child Trust Fund Administration",
-    template: "%s | U.S. Child Trust Fund",
+    default: "Trump.Account.gov — U.S. Trump Account Administration",
+    template: "%s | U.S. Trump Account",
   },
   description:
-    "Official site of the United States Child Trust Fund. Register a child, verify your identity, and receive the federal seed deposit into the child's trust account. Automatic enrollment for children born 2025–2028.",
+    "Official site of the United States Trump Account. Register a child, verify your identity, and receive the federal seed deposit into the child's trust account. Automatic enrollment for children born 2025–2028.",
   keywords: [
-    "Child Trust Fund",
-    "CTF",
+    "Trump Account",
+    "TA",
     "baby bond",
     "children savings account",
     "U.S. Department of the Treasury",

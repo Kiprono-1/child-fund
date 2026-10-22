@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "My Dashboard",
-  description: "View your Child Trust Fund account balance, deposit history and case status.",
+  description: "View your Trump Account account balance, deposit history and case status.",
 };
 
 const DEPOSIT_LABELS: Record<string, string> = {

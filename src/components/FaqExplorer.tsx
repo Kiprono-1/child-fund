@@ -79,7 +79,7 @@ export default function FaqExplorer() {
           <p className="mt-1 mb-0">
             Try a different term, or call the Guardian Help Line at{" "}
             <a href="tel:18445554823" className="font-semibold text-gov-primary hover:underline">
-              1-844-555-4CTF
+              1-844-555-4TA
             </a>
             .
           </p>

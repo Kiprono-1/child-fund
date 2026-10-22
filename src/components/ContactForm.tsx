@@ -85,14 +85,14 @@ export default function ContactForm() {
         </div>
         <div>
           <label className="usa-label" htmlFor="c-ref">
-            CTF reference number (optional)
+            TA reference number (optional)
           </label>
           <input
             id="c-ref"
             className="usa-input font-mono uppercase"
             value={form.referenceNumber}
             onChange={(e) => set("referenceNumber", e.target.value.toUpperCase())}
-            placeholder="CTF-2026-XXXXXX"
+            placeholder="TA-2026-XXXXXX"
           />
         </div>
         <div>

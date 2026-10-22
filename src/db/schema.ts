@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 /**
- * U.S. Child Trust Fund (CTF) — data model
+ * U.S. Trump Account (TA) — data model
  *
  * One `applications` row == one registered child account.
  * Money is always stored as whole U.S. cents (integer).

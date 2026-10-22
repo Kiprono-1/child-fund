@@ -8,7 +8,7 @@ import { getSessionGuardian } from "@/lib/auth";
 export const metadata: Metadata = {
   title: "Register a Child",
   description:
-    "File a Child Trust Fund application for your child. Six steps: guardian details, state of residence, child birth details, trust account, identity verification and certification.",
+    "File a Trump Account application for your child. Six steps: guardian details, state of residence, child birth details, trust account, identity verification and certification.",
 };
 
 export const dynamic = "force-dynamic";
@@ -21,8 +21,8 @@ export default async function ApplyPage() {
     <>
       <PageHero
         trail={[{ label: "Home", href: "/" }, { label: "Register a Child" }]}
-        eyebrow="Guardian services · Form CTF-1"
-        title="Register a child for the U.S. Child Trust Fund"
+        eyebrow="Guardian services · Form TA-1"
+        title="Register a child for the U.S. Trump Account"
         lede={
           <>
             One application opens a custodial trust account for one child. Children born
@@ -65,7 +65,7 @@ export default async function ApplyPage() {
               applications are linked yet. This happens when an application was submitted before
               the guardian created their account. They can still track that application by reference. */}
           <Callout tone="info" title="Previously submitted an application?">
-            If you filed Form CTF-1 before creating this account, that application will not appear
+            If you filed Form TA-1 before creating this account, that application will not appear
             in your dashboard automatically. Use the{" "}
             <Link href="/status" className="font-semibold underline">
               application tracker
@@ -97,7 +97,7 @@ export default async function ApplyPage() {
               <h3 className="mt-3 mb-1 font-serif text-lg font-bold text-gov-navy">Call the Help Line</h3>
               <p className="m-0 text-sm leading-relaxed text-[#3d4551]">
                 <a href="tel:18445554823" className="font-bold text-gov-primary hover:underline">
-                  1-844-555-4CTF
+                  1-844-555-4TA
                 </a>
                 <br />
                 Monday&ndash;Friday, 8:00 a.m. &ndash; 8:00 p.m. ET. TTY: dial 711.
@@ -134,7 +134,7 @@ export default async function ApplyPage() {
 
           <div className="mt-8">
             <Callout tone="warning" title="Never pay a fee to register">
-              Filing Form CTF-1 is free. Anyone charging to &ldquo;expedite&rdquo; a Child Trust
+              Filing Form TA-1 is free. Anyone charging to &ldquo;expedite&rdquo; a Child Trust
               Fund application, or asking for a gift card or your bank password, is committing
               fraud. Report it through the{" "}
               <Link href="/contact" className="font-semibold underline">

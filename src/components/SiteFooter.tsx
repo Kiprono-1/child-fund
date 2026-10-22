@@ -9,7 +9,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "The Program",
     links: [
-      { label: "About the Child Trust Fund", href: "/about" },
+      { label: "About the Trump Account", href: "/about" },
       { label: "How It Works", href: "/how-it-works" },
       { label: "Eligibility & Benefits", href: "/eligibility" },
       { label: "State Participation & Match Rates", href: "/states" },
@@ -60,7 +60,7 @@ export default function SiteFooter() {
   const [busy, setBusy] = useState(false);
   const [contact, setContact] = useState<ContactInfo>({
     contactPhone: "1-800-555-0199",
-    contactEmail: "support@childtrustfund.gov",
+    contactEmail: "support@trump.account.gov",
     helplineHours: "Monday–Friday, 8:00 a.m. – 8:00 p.m. Eastern",
   });
 
@@ -86,7 +86,7 @@ export default function SiteFooter() {
       const data = await res.json();
       setMsg(
         data.ok
-          ? { ok: true, text: "You are subscribed to the CTF Guardian Bulletin." }
+          ? { ok: true, text: "You are subscribed to the TA Guardian Bulletin." }
           : { ok: false, text: data.error ?? "Could not subscribe. Please try again." },
       );
       if (data.ok) {
@@ -110,14 +110,14 @@ export default function SiteFooter() {
             <div className="flex items-start gap-4">
               <img
                 src="/img/ctf-seal.png"
-                alt="Seal of the Child Trust Fund Administration"
+                alt="Seal of the Trump Account Administration"
                 width={84}
                 height={84}
                 className="h-20 w-20 rounded-full bg-white object-contain p-1"
               />
               <div>
                 <p className="font-serif text-lg font-bold text-white">
-                  U.S. Child Trust Fund Administration
+                  U.S. Trump Account Administration
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-gov-primary-light">
                   A program of the U.S. Department of the Treasury, administered in partnership
@@ -181,7 +181,7 @@ export default function SiteFooter() {
             </div>
 
             <div className="mt-6 space-y-1 text-sm">
-              <p className="font-bold text-white">CTF Guardian Help Line</p>
+              <p className="font-bold text-white">TA Guardian Help Line</p>
               <p>
                 <a href={`tel:${contact.contactPhone.replace(/\D/g, "")}`} className="text-gov-accent hover:underline">
                   {contact.contactPhone}
@@ -243,7 +243,7 @@ export default function SiteFooter() {
             />
             <div className="text-[0.74rem] leading-relaxed text-gov-primary-light">
               <p className="m-0">
-                ChildTrustFund.gov is an official website of the United States government.
+                Trump.Account.gov is an official website of the United States government.
               </p>
               <p className="m-0">
                 Federal deposits are held in custodial accounts at approved member banks and are

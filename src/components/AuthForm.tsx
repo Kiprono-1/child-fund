@@ -6,7 +6,7 @@ import { useState, useMemo } from "react";
 
 /**
  * Sign-up / sign-in form for guardian accounts (Option A auth).
- * On success the server sets the `ctf_session` cookie and the client navigates
+ * On success the server sets the `ta_session` cookie and the client navigates
  * to the appropriate page based on account status.
  */
 export default function AuthForm({ mode }: { mode: "signup" | "login" }) {

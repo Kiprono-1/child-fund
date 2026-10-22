@@ -16,7 +16,7 @@ const NAV_LOGGED_OUT: NavItem[] = [
     label: "About the Program",
     href: "/about",
     children: [
-      { label: "About the Child Trust Fund", href: "/about", desc: "Statute, mission and governance" },
+      { label: "About the Trump Account", href: "/about", desc: "Statute, mission and governance" },
       { label: "How It Works", href: "/how-it-works", desc: "From birth certificate to funded account" },
       { label: "Eligibility & Benefits", href: "/eligibility", desc: "Who qualifies and for how much" },
       { label: "State Participation", href: "/states", desc: "State match rates for all 50 states" },
@@ -44,7 +44,7 @@ const NAV_LOGGED_IN: NavItem[] = [
     label: "About the Program",
     href: "/about",
     children: [
-      { label: "About the Child Trust Fund", href: "/about", desc: "Statute, mission and governance" },
+      { label: "About the Trump Account", href: "/about", desc: "Statute, mission and governance" },
       { label: "How It Works", href: "/how-it-works", desc: "From birth certificate to funded account" },
       { label: "Eligibility & Benefits", href: "/eligibility", desc: "Who qualifies and for how much" },
       { label: "State Participation", href: "/states", desc: "State match rates for all 50 states" },
@@ -136,7 +136,7 @@ export default function SiteHeader() {
       {/* Agency identification bar */}
       <div className="bg-white">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="ChildTrustFund.gov home">
+          <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="Trump.Account.gov home">
             <img
               src="/img/gov-seal.png"
               alt="Seal of the United States Department of the Treasury"
@@ -149,24 +149,24 @@ export default function SiteHeader() {
                 U.S. Department of the Treasury
               </span>
               <span className="mt-1 font-serif text-xl font-bold text-gov-navy sm:text-2xl">
-                ChildTrustFund<span className="text-gov-primary">.gov</span>
+                Trump.Account<span className="text-gov-primary">.gov</span>
               </span>
               <span className="mt-1 hidden text-[0.7rem] uppercase tracking-[0.1em] text-gov-primary-dark sm:block">
-                Child Trust Fund Administration · Washington, D.C.
+                Trump Account Administration · Washington, D.C.
               </span>
             </span>
           </Link>
 
           <form onSubmit={submitSearch} className="ml-auto hidden max-w-xs flex-1 items-stretch lg:flex">
             <label htmlFor="site-search" className="sr-only">
-              Search ChildTrustFund.gov
+              Search Trump.Account.gov
             </label>
             <input
               id="site-search"
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search ChildTrustFund.gov"
+              placeholder="Search Trump.Account.gov"
               className="usa-input rounded-r-none border-r-0 text-sm"
             />
             <button
@@ -307,8 +307,8 @@ export default function SiteHeader() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search ChildTrustFund.gov"
-              aria-label="Search ChildTrustFund.gov"
+              placeholder="Search Trump.Account.gov"
+              aria-label="Search Trump.Account.gov"
               className="usa-input text-sm"
             />
             <button type="submit" className="usa-button usa-button--primary !px-4 text-sm">

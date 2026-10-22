@@ -48,7 +48,7 @@ export default function DepositForm({ initialRef = "" }: { initialRef?: string }
   async function lookup(e?: React.FormEvent) {
     e?.preventDefault();
     if (!ref.trim()) {
-      setError("Enter your CTF reference number.");
+      setError("Enter your TA reference number.");
       return;
     }
     setLoading(true);
@@ -123,12 +123,12 @@ export default function DepositForm({ initialRef = "" }: { initialRef?: string }
         <div className="grid gap-4 sm:grid-cols-[1.3fr_1fr_auto] sm:items-end">
           <div>
             <label className="usa-label" htmlFor="dep-ref">
-              CTF reference number <span className="text-gov-red">*</span>
+              TA reference number <span className="text-gov-red">*</span>
             </label>
             <input
               id="dep-ref"
               className="usa-input font-mono uppercase"
-              placeholder="CTF-2026-A4X9K2"
+              placeholder="TA-2026-A4X9K2"
               value={ref}
               onChange={(e) => setRef(e.target.value.toUpperCase())}
             />
@@ -341,7 +341,7 @@ export default function DepositForm({ initialRef = "" }: { initialRef?: string }
                 </li>
                 <li>
                   <strong>Employer payroll deduction</strong> — available where your employer
-                  participates in the Workplace CTF Alliance.
+                  participates in the Workplace TA Alliance.
                 </li>
               </ul>
             </div>

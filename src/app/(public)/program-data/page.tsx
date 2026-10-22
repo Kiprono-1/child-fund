@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Program Data & Statistics",
   description:
-    "Live enrollment and funding statistics for the U.S. Child Trust Fund: registrations by state, deposits by source, case statuses and monthly filing trends.",
+    "Live enrollment and funding statistics for the U.S. Trump Account: registrations by state, deposits by source, case statuses and monthly filing trends.",
 };
 
 export default async function ProgramDataPage() {
@@ -92,7 +92,7 @@ export default async function ProgramDataPage() {
           <div className="usa-card p-5">
             <h2 className="m-0 font-serif text-base font-bold text-gov-navy">Data dictionary</h2>
             <p className="mt-2 mb-0 text-sm leading-relaxed text-[#3d4551]">
-              Registrations count filed Form CTF-1 applications. Funded accounts are those that have
+              Registrations count filed Form TA-1 applications. Funded accounts are those that have
               received at least one posted deposit. Dollar figures are posted amounts only;
               scheduled deposits are shown separately.
             </p>

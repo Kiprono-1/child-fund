@@ -99,7 +99,7 @@ export default function CompoundCalculator() {
         <p className="m-0 text-xs leading-relaxed text-gov-base">
           The calculator assumes contributions are made at the end of each year, the $150 federal
           birthday supplement runs until the child turns 6, and no withdrawals occur before age 18.
-          Returns are estimates — the CTF Growth Portfolio is subject to market risk.
+          Returns are estimates — the TA Growth Portfolio is subject to market risk.
         </p>
       </div>
 
@@ -134,7 +134,7 @@ export default function CompoundCalculator() {
             <polyline points={baselinePath} fill="none" stroke="#71767a" strokeWidth="2" strokeDasharray="5 4" />
             <polyline points={programPath} fill="none" stroke="#005ea2" strokeWidth="3" />
             <text x={W - pad} y={20} fontSize="11" fill="#005ea2" textAnchor="end" fontWeight="bold">
-              With the Child Trust Fund
+              With the Trump Account
             </text>
             <text x={W - pad} y={34} fontSize="11" fill="#71767a" textAnchor="end">
               Savings account only
@@ -170,7 +170,7 @@ export default function CompoundCalculator() {
           </div>
           <div className="rounded border-2 border-gov-green bg-[#f0f9ec] p-4">
             <p className="m-0 text-[0.7rem] font-bold uppercase tracking-wider text-gov-green-dark">
-              At age 18 with CTF
+              At age 18 with TA
             </p>
             <p className="m-0 mt-1 font-serif text-2xl font-bold tabular-nums text-gov-green-dark">
               {formatUSD(Math.round(final.withProgram * 100), false)}

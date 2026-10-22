@@ -1,7 +1,7 @@
-# ChildTrustFund.gov — U.S. Child Trust Fund Administration
+# Trump.Account.gov — U.S. Trump Account Administration
 
 A full-stack Next.js (App Router) + PostgreSQL/Drizzle prototype of a United States
-government benefits site that distributes Child Trust Fund money into custodial
+government benefits site that distributes Trump Account money into custodial
 accounts registered by a parent or legal guardian.
 
 > **Demonstration prototype.** Built as an academic state-government project. It is
@@ -94,7 +94,7 @@ curl -s localhost:3000/api/health          # {"ok":true}
 curl -s localhost:3000/api/stats | head -c 300
 ```
 
-Full lifecycle: register a child at `/apply` → note the `CTF-YYYY-XXXXXX`
+Full lifecycle: register a child at `/apply` → note the `TA-YYYY-XXXXXX`
 reference → upload documents (if that method was chosen) at `/status` →
 click **Run next agency review step** until the account shows **Funded** →
 make a contribution at `/deposit`.

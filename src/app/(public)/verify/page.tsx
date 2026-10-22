@@ -9,7 +9,7 @@ import { getApplicationsByGuardianId } from "@/lib/service";
 export const metadata: Metadata = {
   title: "Verify Your Identity",
   description:
-    "Complete identity verification for your Child Trust Fund application by uploading documents or visiting a state treasury office in person.",
+    "Complete identity verification for your Trump Account application by uploading documents or visiting a state treasury office in person.",
 };
 
 export const dynamic = "force-dynamic";
@@ -90,7 +90,7 @@ export default async function VerifyPage() {
         title="Verify your identity to open the child's account"
         lede={
           <>
-            Federal law (31 C.F.R. § 210) requires the Child Trust Fund Administration to verify the
+            Federal law (31 C.F.R. § 210) requires the Trump Account Administration to verify the
             identity of every adult who opens a custodial account for a minor. Choose document
             upload or visit a participating state treasury office in person — both are free.
           </>
@@ -207,7 +207,7 @@ export default async function VerifyPage() {
                 <Callout tone="info" title="Non-parent guardians">
                   Foster parents, grandparents and other court-appointed guardians must upload the
                   guardianship order in addition to a photo ID. Kinship caregivers can also call the
-                  Help Line for a paper Form CTF-1.
+                  Help Line for a paper Form TA-1.
                 </Callout>
               </div>
             </div>

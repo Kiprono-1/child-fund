@@ -12,7 +12,7 @@ import {
 export const metadata: Metadata = {
   title: "Eligibility & Benefits",
   description:
-    "Who qualifies for the U.S. Child Trust Fund, the automatic enrollment cohort born 2025–2028, the guardian-funded cohort, benefit amounts and special situations.",
+    "Who qualifies for the U.S. Trump Account, the automatic enrollment cohort born 2025–2028, the guardian-funded cohort, benefit amounts and special situations.",
 };
 
 const QUALIFIES = [
@@ -43,12 +43,12 @@ const SPECIAL = [
 
 const FAQS = [
   { q: "Is there an income limit for the family?", a: "No. Every eligible child receives the federal seed deposit regardless of household income. Households below 200% of the federal poverty line receive an additional Supplemental Child Endowment of $250, credited automatically after the annual IRS data match — you do not need to apply for it.", tag: "Income" },
-  { q: "Can a family register more than one child?", a: "Yes. Each child needs a separate Form CTF-1 and receives a separate reference number, account and deposit. There is no per-family limit.", tag: "Families" },
+  { q: "Can a family register more than one child?", a: "Yes. Each child needs a separate Form TA-1 and receives a separate reference number, account and deposit. There is no per-family limit.", tag: "Families" },
   { q: "What if the parents are separated or divorced?", a: "The custodial parent named in the court order registers the child. The non-custodial parent may contribute to the account at any time and receives a contribution statement, but cannot withdraw.", tag: "Custody" },
   { q: "Does the account affect financial aid?", a: "Child trust accounts are treated as a student asset for federal aid purposes. Because the account is custodial, the impact is generally smaller than a parent-owned 529 plan in the same amount. Check with your state's aid office.", tag: "Financial aid" },
   { q: "Can the money be used before age 18?", a: "Only in a documented hardship — medical emergency, eviction or foreclosure prevention, or a funeral expense for an immediate family member. The state treasury office must approve the request.", tag: "Withdrawals" },
   { q: "What happens if we move to another state?", a: "The account moves with the child. Report the new address within 30 days. The new state's contribution match applies from the move date; the opening match already received is never reclaimed.", tag: "Moving" },
-  { q: "Are deposits insured?", a: "CTF Savings Accounts are FDIC-insured to $250,000 per depositor per insured bank. CTF Growth Portfolios are invested in securities and are not FDIC-insured, though they may lose value. CTF Treasury Ladders are backed by the full faith and credit of the United States.", tag: "Insurance" },
+  { q: "Are deposits insured?", a: "TA Savings Accounts are FDIC-insured to $250,000 per depositor per insured bank. TA Growth Portfolios are invested in securities and are not FDIC-insured, though they may lose value. TA Treasury Ladders are backed by the full faith and credit of the United States.", tag: "Insurance" },
   { q: "Does registering cost anything?", a: "No. Registration, verification, deposits and account maintenance are free forever. Certified custodians are prohibited from charging fees on a child trust account.", tag: "Cost" },
 ];
 
@@ -183,7 +183,7 @@ export default function EligibilityPage() {
             </table>
           </div>
           <p className="mt-4 text-sm text-[#3d4551]">
-            Disagree with a decision? File Form CTF-9 (Request for Reconsideration) within 60 days
+            Disagree with a decision? File Form TA-9 (Request for Reconsideration) within 60 days
             through the{" "}
             <Link href="/contact" className="font-semibold text-gov-primary hover:underline">
               Guardian Help Desk
@@ -213,7 +213,7 @@ export default function EligibilityPage() {
                 <>
                   Still unsure? Call{" "}
                   <a href="tel:18445554823" className="font-semibold text-gov-primary hover:underline">
-                    1-844-555-4CTF
+                    1-844-555-4TA
                   </a>
                   .
                 </>

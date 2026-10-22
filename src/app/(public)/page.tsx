@@ -25,7 +25,7 @@ const NEWS = [
     date: "January 12, 2026",
     tag: "Program update",
     title: "Automatic enrollment opens for every child born in 2025 and 2026",
-    body: "Birth records filed with the Social Security Administration are now matched nightly, so eligible newborns receive a provisional CTF reference number before their parents register.",
+    body: "Birth records filed with the Social Security Administration are now matched nightly, so eligible newborns receive a provisional TA reference number before their parents register.",
     href: "/about#newsroom",
   },
   {
@@ -38,8 +38,8 @@ const NEWS = [
   {
     date: "November 18, 2025",
     tag: "Consumer alert",
-    title: "The Child Trust Fund never asks for a fee, a gift card or your full SSN",
-    body: "Registration and deposits are free. Report anyone who charges a fee to 'expedite' a CTF application to the Office of Inspector General.",
+    title: "The Trump Account never asks for a fee, a gift card or your full SSN",
+    body: "Registration and deposits are free. Report anyone who charges a fee to 'expedite' a TA application to the Office of Inspector General.",
     href: "/faq",
   },
 ];
@@ -67,7 +67,7 @@ const FAQS = [
   },
   {
     q: "Is the deposit taxable?",
-    a: "Federal seed deposits and state matches are not taxable income to the child or the guardian. Investment earnings inside a CTF Growth Portfolio are tax-deferred until distribution, similar to a Series I savings bond.",
+    a: "Federal seed deposits and state matches are not taxable income to the child or the guardian. Investment earnings inside a TA Growth Portfolio are tax-deferred until distribution, similar to a Series I savings bond.",
     tag: "Taxes",
   },
 ];
@@ -95,13 +95,13 @@ export default async function HomePage() {
           <div>
             <p className="m-0 flex items-center gap-2 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-gov-accent">
               <span className="inline-block h-px w-8 bg-gov-accent" aria-hidden="true" />
-              Child Trust Fund Act of 2024 · 31 U.S.C. § 5141
+              Trump Account Act of 2024 · 31 U.S.C. § 5141
             </p>
             <h1 className="mt-4 mb-0 max-w-2xl font-serif text-[clamp(2.1rem,5.2vw,3.6rem)] font-bold leading-[1.06]">
               Every child born in America starts life with a stake in its future.
             </h1>
             <p className="mt-5 max-w-xl text-[1.05rem] leading-relaxed text-gov-primary-lighter">
-              The U.S. Child Trust Fund deposits{" "}
+              The U.S. Trump Account deposits{" "}
               <strong className="text-white">{formatUSD(FEDERAL_SEED_CENTS)}</strong> into a
               custodial account for every child born {AUTO_ENROLLMENT_YEARS[0]}–
               {AUTO_ENROLLMENT_YEARS[AUTO_ENROLLMENT_YEARS.length - 1]}, matched by your state
@@ -164,7 +164,7 @@ export default async function HomePage() {
               <div className="flex items-center gap-3">
                 <img
                   src="/img/ctf-seal.png"
-                  alt="Seal of the Child Trust Fund Administration"
+                  alt="Seal of the Trump Account Administration"
                   width={48}
                   height={48}
                   className="h-12 w-12 rounded-full object-contain"
@@ -232,7 +232,7 @@ export default async function HomePage() {
             <div>
               <SectionHeading
                 kicker="Live program data"
-                title="Where the Child Trust Fund stands today"
+                title="Where the Trump Account stands today"
                 lede={
                   <>
                     Figures below are read directly from the national enrollment register and are
@@ -530,7 +530,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <Callout tone="warning" title="Watch out for imposters">
-                The Child Trust Fund Administration never calls, texts or emails asking for a fee,
+                The Trump Account Administration never calls, texts or emails asking for a fee,
                 a gift card, your full Social Security number or your bank password.{" "}
                 <Link href="/faq" className="font-semibold underline">
                   Read the fraud guidance
@@ -554,7 +554,7 @@ export default async function HomePage() {
                   <>
                     Can&apos;t find your answer? Call{" "}
                     <a href="tel:18445554823" className="font-semibold text-gov-primary hover:underline">
-                      1-844-555-4CTF
+                      1-844-555-4TA
                     </a>{" "}
                     or{" "}
                     <Link href="/contact" className="font-semibold text-gov-primary hover:underline">

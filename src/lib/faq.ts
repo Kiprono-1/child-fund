@@ -62,7 +62,7 @@ export const FAQS: Faq[] = [
   {
     category: "Registering",
     q: "Can I register more than one child?",
-    a: "Yes. Each child requires a separate Form CTF-1 and receives a separate reference number and account. After you submit one application you can choose 'Register another child' on the confirmation screen.",
+    a: "Yes. Each child requires a separate Form TA-1 and receives a separate reference number and account. After you submit one application you can choose 'Register another child' on the confirmation screen.",
   },
   {
     category: "Registering",
@@ -72,7 +72,7 @@ export const FAQS: Faq[] = [
   {
     category: "Registering",
     q: "What if I do not have internet access at home?",
-    a: "Call 1-844-555-4823 to request a paper Form CTF-1 by mail, or visit any participating state treasury office where staff will file the application with you at no charge.",
+    a: "Call 1-844-555-4823 to request a paper Form TA-1 by mail, or visit any participating state treasury office where staff will file the application with you at no charge.",
   },
   {
     category: "Verification",
@@ -87,13 +87,13 @@ export const FAQS: Faq[] = [
   {
     category: "Verification",
     q: "Will you store my full Social Security number?",
-    a: "This website only ever asks for the last four digits. The full SSN record match is performed by the Social Security Administration through a secure federal interface, and no full number is retained in the Child Trust Fund register.",
+    a: "This website only ever asks for the last four digits. The full SSN record match is performed by the Social Security Administration through a secure federal interface, and no full number is retained in the Trump Account register.",
     tag: "Privacy",
   },
   {
     category: "Verification",
     q: "What happens if verification fails?",
-    a: "You receive a plain-language notice explaining exactly why, and you may try again twice with a different method. After that, visit a state treasury office in person with originals, or file Form CTF-9 (Request for Reconsideration) within 60 days.",
+    a: "You receive a plain-language notice explaining exactly why, and you may try again twice with a different method. After that, visit a state treasury office in person with originals, or file Form TA-9 (Request for Reconsideration) within 60 days.",
   },
   {
     category: "Deposits & matching",
@@ -113,12 +113,12 @@ export const FAQS: Faq[] = [
   {
     category: "Deposits & matching",
     q: "Are deposits taxable?",
-    a: "Federal seed deposits, state matches and guardian contributions are not taxable income to the child or to the guardian. Investment earnings inside a CTF Growth Portfolio are tax-deferred until distribution, in the same way as a Series I savings bond.",
+    a: "Federal seed deposits, state matches and guardian contributions are not taxable income to the child or to the guardian. Investment earnings inside a TA Growth Portfolio are tax-deferred until distribution, in the same way as a Series I savings bond.",
   },
   {
     category: "Deposits & matching",
     q: "What return does the account earn?",
-    a: "A CTF Savings Account earns the program rate of 3.90% APY and is FDIC-insured. A CTF Growth Portfolio uses an age-based index allocation with a capped expense ratio of 0.05%; it may lose value. A CTF Treasury Ladder holds Series I bonds and 5-year Treasury notes backed by the full faith and credit of the United States.",
+    a: "A TA Savings Account earns the program rate of 3.90% APY and is FDIC-insured. A TA Growth Portfolio uses an age-based index allocation with a capped expense ratio of 0.05%; it may lose value. A TA Treasury Ladder holds Series I bonds and 5-year Treasury notes backed by the full faith and credit of the United States.",
   },
   {
     category: "Using the account",
@@ -143,12 +143,12 @@ export const FAQS: Faq[] = [
   {
     category: "Using the account",
     q: "What happens if the custodian dies or loses custody?",
-    a: "File Form CTF-4 with the state treasury office. Custody transfers, adoption finalizations and death of a custodian are recorded, a successor custodian is appointed, and the account and its balance remain the child's property throughout.",
+    a: "File Form TA-4 with the state treasury office. Custody transfers, adoption finalizations and death of a custodian are recorded, a successor custodian is appointed, and the account and its balance remain the child's property throughout.",
   },
   {
     category: "Privacy & fraud",
     q: "How do I know a message from the program is genuine?",
-    a: "Official emails come only from a childtrustfund.gov address and never ask for money, gift cards, your bank password or your full Social Security number. Phone calls from the program always reference your CTF case number. When in doubt, hang up and call 1-844-555-4823 yourself.",
+    a: "Official emails come only from a trump.account.gov address and never ask for money, gift cards, your bank password or your full Social Security number. Phone calls from the program always reference your TA case number. When in doubt, hang up and call 1-844-555-4823 yourself.",
     tag: "Security",
   },
   {
@@ -160,7 +160,7 @@ export const FAQS: Faq[] = [
   {
     category: "Privacy & fraud",
     q: "Who can see my child's account?",
-    a: "Only you as custodian, the child after their 18th birthday, and authorized staff of the Treasury Fiscal Service, the Federal Fund Board and your state treasury office. Records are protected by the Privacy Act of 1974 under System of Records Notice Treasury/CTF.001.",
+    a: "Only you as custodian, the child after their 18th birthday, and authorized staff of the Treasury Fiscal Service, the Federal Fund Board and your state treasury office. Records are protected by the Privacy Act of 1974 under System of Records Notice Treasury/TA.001.",
   },
   {
     category: "Privacy & fraud",

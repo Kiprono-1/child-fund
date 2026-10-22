@@ -7,14 +7,14 @@ import { STATES } from "@/lib/states";
 export const metadata: Metadata = {
   title: "Contact Us",
   description:
-    "Contact the U.S. Child Trust Fund Administration: Guardian Help Line, written contact form, mailing addresses, state treasury offices, media and accessibility assistance.",
+    "Contact the U.S. Trump Account Administration: Guardian Help Line, written contact form, mailing addresses, state treasury offices, media and accessibility assistance.",
 };
 
 const CHANNELS = [
   {
     icon: "phone",
     title: "Guardian Help Line",
-    lines: ["1-844-555-4CTF (1-844-555-4823)", "Monday–Friday, 8:00 a.m. – 8:00 p.m. ET", "TTY: dial 711 · Se habla español"],
+    lines: ["1-844-555-4TA (1-844-555-4823)", "Monday–Friday, 8:00 a.m. – 8:00 p.m. ET", "TTY: dial 711 · Se habla español"],
     href: "tel:18445554823",
     cta: "Call now",
   },
@@ -22,7 +22,7 @@ const CHANNELS = [
     icon: "mail",
     title: "Mail",
     lines: [
-      "U.S. Child Trust Fund Administration",
+      "U.S. Trump Account Administration",
       "Attn: Guardian Services",
       "1500 Pennsylvania Avenue NW",
       "Washington, DC 20220",
@@ -44,10 +44,10 @@ export default function ContactPage() {
       <PageHero
         trail={[{ label: "Home", href: "/" }, { label: "Contact Us" }]}
         eyebrow="Help · Guardian Services"
-        title="Contact the Child Trust Fund Administration"
+        title="Contact the Trump Account Administration"
         lede={
           <>
-            Real people answer every channel. For anything about an existing case, have your CTF
+            Real people answer every channel. For anything about an existing case, have your TA
             reference number ready — it makes every conversation faster.
           </>
         }

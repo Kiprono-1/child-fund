@@ -119,7 +119,7 @@ export default function StatusTracker({
   const lookup = useCallback(
     async (r: string, l: string) => {
       if (!r.trim()) {
-        setError("Enter your CTF reference number (for example CTF-2026-A4X9K2).");
+        setError("Enter your TA reference number (for example TA-2026-A4X9K2).");
         return;
       }
       setLoading(true);
@@ -244,12 +244,12 @@ export default function StatusTracker({
         <div className="grid gap-4 sm:grid-cols-[1.3fr_1fr_auto] sm:items-end">
           <div>
             <label className="usa-label" htmlFor="lookup-ref">
-              CTF reference number <span className="text-gov-red">*</span>
+              TA reference number <span className="text-gov-red">*</span>
             </label>
             <input
               id="lookup-ref"
               className="usa-input font-mono uppercase"
-              placeholder="CTF-2026-A4X9K2"
+              placeholder="TA-2026-A4X9K2"
               value={ref}
               onChange={(e) => setRef(e.target.value.toUpperCase())}
             />
@@ -303,7 +303,7 @@ export default function StatusTracker({
             <div className="flex flex-wrap items-start justify-between gap-4 bg-gov-navy px-5 py-4 sm:px-6">
               <div>
                 <p className="m-0 text-[0.7rem] font-bold uppercase tracking-[0.14em] text-gov-accent">
-                  Child trust fund account
+                  Trump Account
                 </p>
                 <h2 className="m-0 mt-1 font-serif text-2xl font-bold text-white">
                   {detail.application.childFirstName} {detail.application.childLastName}

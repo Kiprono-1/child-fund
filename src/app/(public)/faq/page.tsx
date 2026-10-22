@@ -6,7 +6,7 @@ import { Callout, PageHero, SectionHeading } from "@/components/ui";
 export const metadata: Metadata = {
   title: "Frequently Asked Questions",
   description:
-    "Answers to 30 common questions about the U.S. Child Trust Fund: eligibility, registration, identity verification, deposits, state matches and fraud prevention.",
+    "Answers to 30 common questions about the U.S. Trump Account: eligibility, registration, identity verification, deposits, state matches and fraud prevention.",
 };
 
 export default function FaqPage() {
@@ -21,7 +21,7 @@ export default function FaqPage() {
             Everything guardians ask the Help Line, in plain language. Use the search box or filter by
             category. If your question is not here, call{" "}
             <a href="tel:18445554823" className="font-semibold text-gov-primary hover:underline">
-              1-844-555-4CTF
+              1-844-555-4TA
             </a>{" "}
             or{" "}
             <Link href="/contact" className="font-semibold text-gov-primary hover:underline">
@@ -64,7 +64,7 @@ export default function FaqPage() {
                   <strong className="text-gov-navy">Guardian Help Line</strong>
                   <br />
                   <a href="tel:18445554823" className="font-bold text-gov-primary hover:underline">
-                    1-844-555-4CTF (1-844-555-4823)
+                    1-844-555-4TA (1-844-555-4823)
                   </a>
                   <br />
                   Monday–Friday, 8:00 a.m. – 8:00 p.m. ET
@@ -117,7 +117,7 @@ export default function FaqPage() {
             <div className="usa-card p-5">
               <h3 className="m-0 font-serif text-lg font-bold text-gov-navy">3. Request reconsideration</h3>
               <p className="mt-2 mb-0 text-sm leading-relaxed text-[#3d4551]">
-                If a decision was wrong, file Form CTF-9 within 60 days. A different specialist
+                If a decision was wrong, file Form TA-9 within 60 days. A different specialist
                 reviews the case and you may add new evidence.
               </p>
             </div>

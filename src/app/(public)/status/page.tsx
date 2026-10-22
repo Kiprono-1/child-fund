@@ -6,7 +6,7 @@ import { Callout, PageHero, SectionHeading, StepList } from "@/components/ui";
 export const metadata: Metadata = {
   title: "Track Your Application",
   description:
-    "Look up the status of a Child Trust Fund application, see the review pipeline, upload verification documents, review the deposit ledger and make contributions.",
+    "Look up the status of a Trump Account application, see the review pipeline, upload verification documents, review the deposit ledger and make contributions.",
 };
 
 export default async function StatusPage({
@@ -21,7 +21,7 @@ export default async function StatusPage({
       <PageHero
         trail={[{ label: "Home", href: "/" }, { label: "Track Application" }]}
         eyebrow="Guardian services · Case lookup"
-        title="Track your Child Trust Fund application"
+        title="Track your Trump Account application"
         lede={
           <>
             Enter the reference number issued when you registered plus the child&apos;s last name.
@@ -36,7 +36,7 @@ export default async function StatusPage({
               It was shown on your confirmation screen and emailed to the address on the
               application. If you cannot find it, call{" "}
               <a href="tel:18445554823" className="font-bold text-gov-primary hover:underline">
-                1-844-555-4CTF
+                1-844-555-4TA
               </a>{" "}
               with your photo ID and the child&apos;s date of birth.
             </p>
@@ -62,7 +62,7 @@ export default async function StatusPage({
               steps={[
                 {
                   title: "Application filed",
-                  body: "We received Form CTF-1 and issued your reference number. Nothing else is needed from you yet.",
+                  body: "We received Form TA-1 and issued your reference number. Nothing else is needed from you yet.",
                 },
                 {
                   title: "Federal intake review",
